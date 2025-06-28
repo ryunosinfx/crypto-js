@@ -1,50 +1,49 @@
-YUI.add('pad-iso10126-test', function (Y) {
-    var C = CryptoJS;
+const data = {};
+YUI.add(
+	'pad-iso10126-test',
+	Y => {
+		const C = CryptoJS;
 
-    Y.Test.Runner.add(new Y.Test.Case({
-        name: 'Iso10126',
+		Y.Test.Runner.add(
+			new Y.Test.Case({
+				name: 'Iso10126',
 
-        setUp: function () {
-            this.data = {};
+				setUp: () => {
+					// Save original random method
+					data.random = C.lib.WordArray.random;
 
-            // Save original random method
-            this.data.random = C.lib.WordArray.random;
+					// Replace random method with one that returns a predictable value
+					C.lib.WordArray.random = nBytes => {
+						const words = [];
+						for (let i = 0; i < nBytes; i += 4) words.push([0x11223344]);
+						return C.lib.WordArray.create(words, nBytes);
+					};
+				},
 
-            // Replace random method with one that returns a predictable value
-            C.lib.WordArray.random = function (nBytes) {
-                var words = [];
-                for (var i = 0; i < nBytes; i += 4) {
-                    words.push([0x11223344]);
-                }
+				tearDown: () => {
+					// Restore random method
+					C.lib.WordArray.random = data.random;
+				},
 
-                return C.lib.WordArray.create(words, nBytes);
-            };
-        },
+				testPad: () => {
+					const data = C.lib.WordArray.create([0xdddddd00], 3);
+					C.pad.Iso10126.pad(data, 2);
+					Y.Assert.areEqual(C.lib.WordArray.create([0xdddddd11, 0x22334405]).toString(), data.toString());
+				},
 
-        tearDown: function () {
-            // Restore random method
-            C.lib.WordArray.random = this.data.random;
-        },
+				testPadClamp: () => {
+					const data = C.lib.WordArray.create([0xdddddddd, 0xdddddddd], 3);
+					C.pad.Iso10126.pad(data, 2);
+					Y.Assert.areEqual(C.lib.WordArray.create([0xdddddd11, 0x22334405]).toString(), data.toString());
+				},
 
-        testPad: function () {
-            var data = C.lib.WordArray.create([0xdddddd00], 3);
-            C.pad.Iso10126.pad(data, 2);
-
-            Y.Assert.areEqual(C.lib.WordArray.create([0xdddddd11, 0x22334405]).toString(), data.toString());
-        },
-
-        testPadClamp: function () {
-            var data = C.lib.WordArray.create([0xdddddddd, 0xdddddddd], 3);
-            C.pad.Iso10126.pad(data, 2);
-
-            Y.Assert.areEqual(C.lib.WordArray.create([0xdddddd11, 0x22334405]).toString(), data.toString());
-        },
-
-        testUnpad: function () {
-            var data = C.lib.WordArray.create([0xdddddd11, 0x22334405]);
-            C.pad.Iso10126.unpad(data);
-
-            Y.Assert.areEqual(C.lib.WordArray.create([0xdddddd00], 3).toString(), data.toString());
-        }
-    }));
-}, '$Rev$');
+				testUnpad: () => {
+					const data = C.lib.WordArray.create([0xdddddd11, 0x22334405]);
+					C.pad.Iso10126.unpad(data);
+					Y.Assert.areEqual(C.lib.WordArray.create([0xdddddd00], 3).toString(), data.toString());
+				},
+			})
+		);
+	},
+	'$Rev$'
+);

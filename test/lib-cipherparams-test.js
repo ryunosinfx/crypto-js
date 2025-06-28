@@ -1,59 +1,64 @@
-YUI.add('lib-cipherparams-test', function (Y) {
-    var C = CryptoJS;
+const data = {};
+YUI.add(
+	'lib-cipherparams-test',
+	Y => {
+		const C = CryptoJS;
 
-    Y.Test.Runner.add(new Y.Test.Case({
-        name: 'CipherParams',
+		Y.Test.Runner.add(
+			new Y.Test.Case({
+				name: 'CipherParams',
 
-        setUp: function () {
-            this.data = {};
+				setUp: () => {
+					data.ciphertext = C.enc.Hex.parse('000102030405060708090a0b0c0d0e0f');
+					data.key = C.enc.Hex.parse('101112131415161718191a1b1c1d1e1f');
+					data.iv = C.enc.Hex.parse('202122232425262728292a2b2c2d2e2f');
+					data.salt = C.enc.Hex.parse('0123456789abcdef');
+					data.algorithm = C.algo.AES;
+					data.mode = C.mode.CBC;
+					data.padding = C.pad.PKCS7;
+					data.blockSize = data.algorithm.blockSize;
+					data.formatter = C.format.OpenSSL;
 
-            this.data.ciphertext = C.enc.Hex.parse('000102030405060708090a0b0c0d0e0f');
-            this.data.key = C.enc.Hex.parse('101112131415161718191a1b1c1d1e1f');
-            this.data.iv = C.enc.Hex.parse('202122232425262728292a2b2c2d2e2f');
-            this.data.salt = C.enc.Hex.parse('0123456789abcdef');
-            this.data.algorithm = C.algo.AES;
-            this.data.mode = C.mode.CBC;
-            this.data.padding = C.pad.PKCS7;
-            this.data.blockSize = this.data.algorithm.blockSize;
-            this.data.formatter = C.format.OpenSSL;
+					data.cipherParams = C.lib.CipherParams.create({
+						ciphertext: data.ciphertext,
+						key: data.key,
+						iv: data.iv,
+						salt: data.salt,
+						algorithm: data.algorithm,
+						mode: data.mode,
+						padding: data.padding,
+						blockSize: data.blockSize,
+						formatter: data.formatter,
+					});
+				},
 
-            this.data.cipherParams = C.lib.CipherParams.create({
-                ciphertext: this.data.ciphertext,
-                key: this.data.key,
-                iv: this.data.iv,
-                salt: this.data.salt,
-                algorithm: this.data.algorithm,
-                mode: this.data.mode,
-                padding: this.data.padding,
-                blockSize: this.data.blockSize,
-                formatter: this.data.formatter
-            });
-        },
+				testInit: () => {
+					Y.Assert.areEqual(data.ciphertext, data.cipherParams.ciphertext);
+					Y.Assert.areEqual(data.key, data.cipherParams.key);
+					Y.Assert.areEqual(data.iv, data.cipherParams.iv);
+					Y.Assert.areEqual(data.salt, data.cipherParams.salt);
+					Y.Assert.areEqual(data.algorithm, data.cipherParams.algorithm);
+					Y.Assert.areEqual(data.mode, data.cipherParams.mode);
+					Y.Assert.areEqual(data.padding, data.cipherParams.padding);
+					Y.Assert.areEqual(data.blockSize, data.cipherParams.blockSize);
+					Y.Assert.areEqual(data.formatter, data.cipherParams.formatter);
+				},
 
-        testInit: function () {
-            Y.Assert.areEqual(this.data.ciphertext, this.data.cipherParams.ciphertext);
-            Y.Assert.areEqual(this.data.key, this.data.cipherParams.key);
-            Y.Assert.areEqual(this.data.iv, this.data.cipherParams.iv);
-            Y.Assert.areEqual(this.data.salt, this.data.cipherParams.salt);
-            Y.Assert.areEqual(this.data.algorithm, this.data.cipherParams.algorithm);
-            Y.Assert.areEqual(this.data.mode, this.data.cipherParams.mode);
-            Y.Assert.areEqual(this.data.padding, this.data.cipherParams.padding);
-            Y.Assert.areEqual(this.data.blockSize, this.data.cipherParams.blockSize);
-            Y.Assert.areEqual(this.data.formatter, this.data.cipherParams.formatter);
-        },
+				testToString0: () =>
+					Y.Assert.areEqual(C.format.OpenSSL.stringify(data.cipherParams), data.cipherParams.toString()),
+				testToString1: () => {
+					const JsonFormatter = {
+						stringify: cipherParams =>
+							'{ ct: ' + cipherParams.ciphertext + ', iv: ' + cipherParams.iv + ' }',
+					};
 
-        testToString0: function () {
-            Y.Assert.areEqual(C.format.OpenSSL.stringify(this.data.cipherParams), this.data.cipherParams.toString());
-        },
-
-        testToString1: function () {
-            var JsonFormatter = {
-                stringify: function (cipherParams) {
-                    return '{ ct: ' + cipherParams.ciphertext + ', iv: ' + cipherParams.iv + ' }';
-                }
-            };
-
-            Y.Assert.areEqual(JsonFormatter.stringify(this.data.cipherParams), this.data.cipherParams.toString(JsonFormatter));
-        }
-    }));
-}, '$Rev$');
+					Y.Assert.areEqual(
+						JsonFormatter.stringify(data.cipherParams),
+						data.cipherParams.toString(JsonFormatter)
+					);
+				},
+			})
+		);
+	},
+	'$Rev$'
+);

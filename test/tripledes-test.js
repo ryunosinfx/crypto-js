@@ -1,121 +1,203 @@
-YUI.add('algo-tripledes-test', function (Y) {
-    var C = CryptoJS;
+YUI.add(
+	'algo-tripledes-test',
+	Y => {
+		const C = CryptoJS;
 
-    Y.Test.Runner.add(new Y.Test.Case({
-        name: 'TripleDES',
+		Y.Test.Runner.add(
+			new Y.Test.Case({
+				name: 'TripleDES',
 
-        testEncrypt1: function () {
-            Y.Assert.areEqual('95a8d72813daa94d', C.TripleDES.encrypt(C.enc.Hex.parse('0000000000000000'), C.enc.Hex.parse('800101010101010180010101010101018001010101010101'), { mode: C.mode.ECB, padding: C.pad.NoPadding }).ciphertext.toString());
-        },
+				testEncrypt1: () =>
+					Y.Assert.areEqual(
+						'95a8d72813daa94d',
+						C.TripleDES.encrypt(
+							C.enc.Hex.parse('0000000000000000'),
+							C.enc.Hex.parse('800101010101010180010101010101018001010101010101'),
+							{ mode: C.mode.ECB, padding: C.pad.NoPadding }
+						).ciphertext.toString()
+					),
+				testEncrypt2: () =>
+					Y.Assert.areEqual(
+						'869efd7f9f265a09',
+						C.TripleDES.encrypt(
+							C.enc.Hex.parse('0000000000000000'),
+							C.enc.Hex.parse('010101010101010201010101010101020101010101010102'),
+							{ mode: C.mode.ECB, padding: C.pad.NoPadding }
+						).ciphertext.toString()
+					),
+				testEncrypt3: () =>
+					Y.Assert.areEqual(
+						'95f8a5e5dd31d900',
+						C.TripleDES.encrypt(
+							C.enc.Hex.parse('8000000000000000'),
+							C.enc.Hex.parse('010101010101010101010101010101010101010101010101'),
+							{ mode: C.mode.ECB, padding: C.pad.NoPadding }
+						).ciphertext.toString()
+					),
+				testEncrypt4: () =>
+					Y.Assert.areEqual(
+						'166b40b44aba4bd6',
+						C.TripleDES.encrypt(
+							C.enc.Hex.parse('0000000000000001'),
+							C.enc.Hex.parse('010101010101010101010101010101010101010101010101'),
+							{ mode: C.mode.ECB, padding: C.pad.NoPadding }
+						).ciphertext.toString()
+					),
+				testDecrypt1: () =>
+					Y.Assert.areEqual(
+						'0000000000000000',
+						C.TripleDES.decrypt(
+							C.lib.CipherParams.create({ ciphertext: C.enc.Hex.parse('95a8d72813daa94d') }),
+							C.enc.Hex.parse('800101010101010180010101010101018001010101010101'),
+							{ mode: C.mode.ECB, padding: C.pad.NoPadding }
+						).toString()
+					),
+				testDecrypt2: () =>
+					Y.Assert.areEqual(
+						'0000000000000000',
+						C.TripleDES.decrypt(
+							C.lib.CipherParams.create({ ciphertext: C.enc.Hex.parse('869efd7f9f265a09') }),
+							C.enc.Hex.parse('010101010101010201010101010101020101010101010102'),
+							{ mode: C.mode.ECB, padding: C.pad.NoPadding }
+						).toString()
+					),
+				testDecrypt3: () =>
+					Y.Assert.areEqual(
+						'8000000000000000',
+						C.TripleDES.decrypt(
+							C.lib.CipherParams.create({ ciphertext: C.enc.Hex.parse('95f8a5e5dd31d900') }),
+							C.enc.Hex.parse('010101010101010101010101010101010101010101010101'),
+							{ mode: C.mode.ECB, padding: C.pad.NoPadding }
+						).toString()
+					),
+				testDecrypt4: () =>
+					Y.Assert.areEqual(
+						'0000000000000001',
+						C.TripleDES.decrypt(
+							C.lib.CipherParams.create({ ciphertext: C.enc.Hex.parse('166b40b44aba4bd6') }),
+							C.enc.Hex.parse('010101010101010101010101010101010101010101010101'),
+							{ mode: C.mode.ECB, padding: C.pad.NoPadding }
+						).toString()
+					),
+				testMultiPart: () => {
+					const des = C.algo.TripleDES.createEncryptor(
+						C.enc.Hex.parse('000102030405060708090a0b0c0d0e0f1011121314151617'),
+						{ mode: C.mode.ECB, padding: C.pad.NoPadding }
+					);
+					const ciphertext1 = des.process(C.enc.Hex.parse('001122334455'));
+					const ciphertext2 = des.process(C.enc.Hex.parse('66778899aa'));
+					const ciphertext3 = des.process(C.enc.Hex.parse('bbccddeeff'));
+					const ciphertext4 = des.finalize();
 
-        testEncrypt2: function () {
-            Y.Assert.areEqual('869efd7f9f265a09', C.TripleDES.encrypt(C.enc.Hex.parse('0000000000000000'), C.enc.Hex.parse('010101010101010201010101010101020101010101010102'), { mode: C.mode.ECB, padding: C.pad.NoPadding }).ciphertext.toString());
-        },
+					Y.Assert.areEqual(
+						C.TripleDES.encrypt(
+							C.enc.Hex.parse('00112233445566778899aabbccddeeff'),
+							C.enc.Hex.parse('000102030405060708090a0b0c0d0e0f1011121314151617'),
+							{ mode: C.mode.ECB, padding: C.pad.NoPadding }
+						).ciphertext.toString(),
+						ciphertext1.concat(ciphertext2).concat(ciphertext3).concat(ciphertext4).toString()
+					);
+				},
 
-        testEncrypt3: function () {
-            Y.Assert.areEqual('95f8a5e5dd31d900', C.TripleDES.encrypt(C.enc.Hex.parse('8000000000000000'), C.enc.Hex.parse('010101010101010101010101010101010101010101010101'), { mode: C.mode.ECB, padding: C.pad.NoPadding }).ciphertext.toString());
-        },
+				testInputIntegrity: () => {
+					const message = C.enc.Hex.parse('00112233445566778899aabbccddeeff');
+					const key = C.enc.Hex.parse('000102030405060708090a0b0c0d0e0f1011121314151617');
+					const iv = C.enc.Hex.parse('08090a0b0c0d0e0f');
 
-        testEncrypt4: function () {
-            Y.Assert.areEqual('166b40b44aba4bd6', C.TripleDES.encrypt(C.enc.Hex.parse('0000000000000001'), C.enc.Hex.parse('010101010101010101010101010101010101010101010101'), { mode: C.mode.ECB, padding: C.pad.NoPadding }).ciphertext.toString());
-        },
+					const expectedMessage = message.toString();
+					const expectedKey = key.toString();
+					const expectedIv = iv.toString();
 
-        testDecrypt1: function () {
-            Y.Assert.areEqual('0000000000000000', C.TripleDES.decrypt(C.lib.CipherParams.create({ ciphertext: C.enc.Hex.parse('95a8d72813daa94d') }), C.enc.Hex.parse('800101010101010180010101010101018001010101010101'), { mode: C.mode.ECB, padding: C.pad.NoPadding }).toString());
-        },
+					C.TripleDES.encrypt(message, key, { iv: iv });
 
-        testDecrypt2: function () {
-            Y.Assert.areEqual('0000000000000000', C.TripleDES.decrypt(C.lib.CipherParams.create({ ciphertext: C.enc.Hex.parse('869efd7f9f265a09') }), C.enc.Hex.parse('010101010101010201010101010101020101010101010102'), { mode: C.mode.ECB, padding: C.pad.NoPadding }).toString());
-        },
+					Y.Assert.areEqual(expectedMessage, message.toString());
+					Y.Assert.areEqual(expectedKey, key.toString());
+					Y.Assert.areEqual(expectedIv, iv.toString());
+				},
 
-        testDecrypt3: function () {
-            Y.Assert.areEqual('8000000000000000', C.TripleDES.decrypt(C.lib.CipherParams.create({ ciphertext: C.enc.Hex.parse('95f8a5e5dd31d900') }), C.enc.Hex.parse('010101010101010101010101010101010101010101010101'), { mode: C.mode.ECB, padding: C.pad.NoPadding }).toString());
-        },
+				test64BitKey: function () {
+					const message = C.enc.Hex.parse('00112233445566778899aabbccddeeff');
+					const key = C.enc.Hex.parse('0011223344556677');
+					const extendedKey = C.enc.Hex.parse('001122334455667700112233445566770011223344556677');
 
-        testDecrypt4: function () {
-            Y.Assert.areEqual('0000000000000001', C.TripleDES.decrypt(C.lib.CipherParams.create({ ciphertext: C.enc.Hex.parse('166b40b44aba4bd6') }), C.enc.Hex.parse('010101010101010101010101010101010101010101010101'), { mode: C.mode.ECB, padding: C.pad.NoPadding }).toString());
-        },
+					const output1 = C.TripleDES.encrypt(message, key, { mode: C.mode.ECB }).toString();
+					const output2 = C.TripleDES.encrypt(message, extendedKey, { mode: C.mode.ECB }).toString();
 
-        testMultiPart: function () {
-            var des = C.algo.TripleDES.createEncryptor(C.enc.Hex.parse('000102030405060708090a0b0c0d0e0f1011121314151617'), { mode: C.mode.ECB, padding: C.pad.NoPadding });
-            var ciphertext1 = des.process(C.enc.Hex.parse('001122334455'));
-            var ciphertext2 = des.process(C.enc.Hex.parse('66778899aa'));
-            var ciphertext3 = des.process(C.enc.Hex.parse('bbccddeeff'));
-            var ciphertext4 = des.finalize();
+					Y.Assert.areEqual(output1, output2);
+				},
 
-            Y.Assert.areEqual(C.TripleDES.encrypt(C.enc.Hex.parse('00112233445566778899aabbccddeeff'), C.enc.Hex.parse('000102030405060708090a0b0c0d0e0f1011121314151617'), { mode: C.mode.ECB, padding: C.pad.NoPadding }).ciphertext.toString(), ciphertext1.concat(ciphertext2).concat(ciphertext3).concat(ciphertext4).toString());
-        },
+				test128BitKey: function () {
+					const message = C.enc.Hex.parse('00112233445566778899aabbccddeeff');
+					const key = C.enc.Hex.parse('00112233445566778899aabbccddeeff');
+					const extendedKey = C.enc.Hex.parse('00112233445566778899aabbccddeeff0011223344556677');
 
-        testInputIntegrity: function () {
-            var message = C.enc.Hex.parse('00112233445566778899aabbccddeeff');
-            var key = C.enc.Hex.parse('000102030405060708090a0b0c0d0e0f1011121314151617');
-            var iv = C.enc.Hex.parse('08090a0b0c0d0e0f');
+					const output1 = C.TripleDES.encrypt(message, key, { mode: C.mode.ECB }).toString();
+					const output2 = C.TripleDES.encrypt(message, extendedKey, { mode: C.mode.ECB }).toString();
 
-            var expectedMessage = message.toString();
-            var expectedKey = key.toString();
-            var expectedIv = iv.toString();
+					Y.Assert.areEqual(output1, output2);
+				},
 
-            C.TripleDES.encrypt(message, key, { iv: iv });
+				test256BitKey: function () {
+					const message = C.enc.Hex.parse('00112233445566778899aabbccddeeff');
+					const key = C.enc.Hex.parse('00112233445566778899aabbccddeeff0112233445566778899aabbccddeeff0');
+					const truncatedKey = C.enc.Hex.parse('00112233445566778899aabbccddeeff0112233445566778');
 
-            Y.Assert.areEqual(expectedMessage, message.toString());
-            Y.Assert.areEqual(expectedKey, key.toString());
-            Y.Assert.areEqual(expectedIv, iv.toString());
-        },
+					const output1 = C.TripleDES.encrypt(message, key, { mode: C.mode.ECB }).toString();
+					const output2 = C.TripleDES.encrypt(message, truncatedKey, { mode: C.mode.ECB }).toString();
 
-        test64BitKey: function() {
-            var message = C.enc.Hex.parse('00112233445566778899aabbccddeeff');
-            var key = C.enc.Hex.parse('0011223344556677');
-            var extendedKey = C.enc.Hex.parse('001122334455667700112233445566770011223344556677')
-            
-            var output1 = C.TripleDES.encrypt(message, key, { mode: C.mode.ECB }).toString();
-            var output2 = C.TripleDES.encrypt(message, extendedKey, { mode: C.mode.ECB }).toString();
+					Y.Assert.areEqual(output1, output2);
+				},
 
-            Y.Assert.areEqual(output1, output2);
-        },
+				testHelper: () => {
+					// Save original random method
+					const random = C.lib.WordArray.random;
 
-        test128BitKey: function() {
-            var message = C.enc.Hex.parse('00112233445566778899aabbccddeeff');
-            var key = C.enc.Hex.parse('00112233445566778899aabbccddeeff');
-            var extendedKey = C.enc.Hex.parse('00112233445566778899aabbccddeeff0011223344556677')
-            
-            var output1 = C.TripleDES.encrypt(message, key, { mode: C.mode.ECB }).toString();
-            var output2 = C.TripleDES.encrypt(message, extendedKey, { mode: C.mode.ECB }).toString();
+					// Replace random method with one that returns a predictable value
+					C.lib.WordArray.random = function (nBytes) {
+						const words = [];
+						for (let i = 0; i < nBytes; i += 4) words.push([0x11223344]);
+						return C.lib.WordArray.create(words, nBytes);
+					};
 
-            Y.Assert.areEqual(output1, output2);
-        },
+					// Test
+					Y.Assert.areEqual(
+						C.algo.TripleDES.createEncryptor(C.SHA256('Jefe'), {
+							mode: C.mode.ECB,
+							padding: C.pad.NoPadding,
+						})
+							.finalize('Hi There')
+							.toString(),
+						C.TripleDES.encrypt('Hi There', C.SHA256('Jefe'), {
+							mode: C.mode.ECB,
+							padding: C.pad.NoPadding,
+						}).ciphertext.toString()
+					);
+					Y.Assert.areEqual(
+						C.lib.SerializableCipher.encrypt(C.algo.TripleDES, 'Hi There', C.SHA256('Jefe'), {
+							mode: C.mode.ECB,
+							padding: C.pad.NoPadding,
+						}).toString(),
+						C.TripleDES.encrypt('Hi There', C.SHA256('Jefe'), {
+							mode: C.mode.ECB,
+							padding: C.pad.NoPadding,
+						}).toString()
+					);
+					Y.Assert.areEqual(
+						C.lib.PasswordBasedCipher.encrypt(C.algo.TripleDES, 'Hi There', 'Jefe', {
+							mode: C.mode.ECB,
+							padding: C.pad.NoPadding,
+						}).toString(),
+						C.TripleDES.encrypt('Hi There', 'Jefe', {
+							mode: C.mode.ECB,
+							padding: C.pad.NoPadding,
+						}).toString()
+					);
 
-        test256BitKey: function() {
-            var message = C.enc.Hex.parse('00112233445566778899aabbccddeeff');
-            var key = C.enc.Hex.parse('00112233445566778899aabbccddeeff0112233445566778899aabbccddeeff0');
-            var truncatedKey = C.enc.Hex.parse('00112233445566778899aabbccddeeff0112233445566778')
-            
-            var output1 = C.TripleDES.encrypt(message, key, { mode: C.mode.ECB }).toString();
-            var output2 = C.TripleDES.encrypt(message, truncatedKey, { mode: C.mode.ECB }).toString();
-
-            Y.Assert.areEqual(output1, output2);
-        },
-
-        testHelper: function () {
-            // Save original random method
-            var random = C.lib.WordArray.random;
-
-            // Replace random method with one that returns a predictable value
-            C.lib.WordArray.random = function (nBytes) {
-                var words = [];
-                for (var i = 0; i < nBytes; i += 4) {
-                    words.push([0x11223344]);
-                }
-
-                return C.lib.WordArray.create(words, nBytes);
-            };
-
-            // Test
-            Y.Assert.areEqual(C.algo.TripleDES.createEncryptor(C.SHA256('Jefe'), { mode: C.mode.ECB, padding: C.pad.NoPadding }).finalize('Hi There').toString(), C.TripleDES.encrypt('Hi There', C.SHA256('Jefe'), { mode: C.mode.ECB, padding: C.pad.NoPadding }).ciphertext.toString());
-            Y.Assert.areEqual(C.lib.SerializableCipher.encrypt(C.algo.TripleDES, 'Hi There', C.SHA256('Jefe'), { mode: C.mode.ECB, padding: C.pad.NoPadding }).toString(), C.TripleDES.encrypt('Hi There', C.SHA256('Jefe'), { mode: C.mode.ECB, padding: C.pad.NoPadding }).toString());
-            Y.Assert.areEqual(C.lib.PasswordBasedCipher.encrypt(C.algo.TripleDES, 'Hi There', 'Jefe', { mode: C.mode.ECB, padding: C.pad.NoPadding }).toString(), C.TripleDES.encrypt('Hi There', 'Jefe', { mode: C.mode.ECB, padding: C.pad.NoPadding }).toString());
-
-            // Restore random method
-            C.lib.WordArray.random = random;
-        }
-    }));
-}, '$Rev$');
+					// Restore random method
+					C.lib.WordArray.random = random;
+				},
+			})
+		);
+	},
+	'$Rev$'
+);
