@@ -1,31 +1,30 @@
-YUI.add('algo-aes-profile', function (Y) {
-    var C = CryptoJS;
+const data = {};
+YUI.add(
+	'algo-aes-profile',
+	Y => {
+		const C = CryptoJS;
 
-    Y.Profiler.add({
-        name: 'AES',
+		Y.Profiler.add({
+			name: 'AES',
 
-        setUp: function () {
-            this.data = {
-                key: C.enc.Hex.parse('000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f'),
-                iv: C.enc.Hex.parse('000102030405060708090a0b0c0d0e0f')
-            };
-        },
+			setUp: () => {
+				data.key = C.enc.Hex.parse('000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f');
+				data.iv = C.enc.Hex.parse('000102030405060708090a0b0c0d0e0f');
+			},
 
-        profileSinglePartMessage: function () {
-            var singlePartMessage = '';
-            for (var i = 0; i < 500; i++) {
-                singlePartMessage += '12345678901234567890123456789012345678901234567890';
-            }
+			profileSinglePartMessage: () => {
+				const singlePartMessage = [];
+				for (let i = 0; i < 500; i++)
+					singlePartMessage.push('12345678901234567890123456789012345678901234567890');
+				C.algo.AES.createEncryptor(data.key, { iv: data.iv }).finalize(singlePartMessage.join('')) + '';
+			},
 
-            C.algo.AES.createEncryptor(this.data.key, { iv: this.data.iv }).finalize(singlePartMessage) + '';
-        },
-
-        profileMultiPartMessage: function () {
-            var aes = C.algo.AES.createEncryptor(this.data.key, { iv: this.data.iv });
-            for (var i = 0; i < 500; i++) {
-                aes.process('12345678901234567890123456789012345678901234567890') + '';
-            }
-            aes.finalize() + '';
-        }
-    });
-}, '$Rev$');
+			profileMultiPartMessage: () => {
+				const aes = C.algo.AES.createEncryptor(data.key, { iv: data.iv });
+				for (let i = 0; i < 500; i++) aes.process('12345678901234567890123456789012345678901234567890') + '';
+				aes.finalize() + '';
+			},
+		});
+	},
+	'$Rev$'
+);
