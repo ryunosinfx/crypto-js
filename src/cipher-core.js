@@ -236,12 +236,12 @@ CryptoJS.lib.Cipher ||
 			/**
 			 * Abstract base CBC mode.
 			 */
-			const _CBC = BlockCipherMode.extend();
+			const CBC = BlockCipherMode.extend();
 
 			/**
 			 * CBC encryptor.
 			 */
-			_CBC.Encryptor = _CBC.extend({
+			CBC.Encryptor = CBC.extend({
 				/**
 				 * Processes the data block at offset.
 				 *
@@ -255,10 +255,8 @@ CryptoJS.lib.Cipher ||
 				processBlock: function (words, offset) {
 					const cipher = this._cipher; // Shortcuts
 					const blockSize = cipher.blockSize; // Shortcuts
-
 					xorBlock.call(this, words, offset, blockSize); // XOR and encrypt
 					cipher.encryptBlock(words, offset);
-
 					this._prevBlock = words.slice(offset, offset + blockSize); // Remember this block to use with next block
 				},
 			});
@@ -266,7 +264,7 @@ CryptoJS.lib.Cipher ||
 			/**
 			 * CBC decryptor.
 			 */
-			_CBC.Decryptor = _CBC.extend({
+			CBC.Decryptor = CBC.extend({
 				/**
 				 * Processes the data block at offset.
 				 *
@@ -281,22 +279,20 @@ CryptoJS.lib.Cipher ||
 					const cipher = this._cipher; // Shortcuts
 					const blockSize = cipher.blockSize; // Shortcuts
 					const thisBlock = words.slice(offset, offset + blockSize); // Remember this block to use with next block
-
 					cipher.decryptBlock(words, offset); // Decrypt and XOR
 					xorBlock.call(this, words, offset, blockSize);
-
 					this._prevBlock = thisBlock; // This block becomes the previous block
 				},
 			});
 
 			function xorBlock(words, offset, blockSize) {
 				const iv = this._iv; // Shortcut
-				const block = iv ? iv : this._prevBlock; // Choose mixing block
-				if (iv) this._iv = undefined; // Remove IV for subsequent blocks
-				else for (let i = 0; i < blockSize; i++) words[offset + i] ^= block[i]; // XOR blocks
+				const block = iv ? iv : this._prevBlock;
+				if (iv) this._iv = undefined; // Choose mixing block// Remove IV for subsequent blocks
+				for (let i = 0; i < blockSize; i++) words[offset + i] ^= block[i]; // XOR blocks
 			}
 
-			return _CBC;
+			return CBC;
 		})();
 
 		/**

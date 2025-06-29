@@ -1,14 +1,15 @@
 (function () {
 	// Shortcuts
-	var C = CryptoJS;
-	var C_lib = C.lib;
-	var WordArray = C_lib.WordArray;
-	var C_enc = C.enc;
+	const C = CryptoJS;
+	const C_lib = C.lib;
+	const WordArray = C_lib.WordArray;
 
 	/**
 	 * Base64 encoding strategy.
 	 */
-	var Base64 = (C_enc.Base64 = {
+	class Base64 {
+		static _map = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
+		static _reverseMap = []; // Reverse map for Base64 decoding
 		/**
 		 * Converts a word array to a Base64 string.
 		 *
@@ -20,41 +21,27 @@
 		 *
 		 * @example
 		 *
-		 *     var base64String = CryptoJS.enc.Base64.stringify(wordArray);
+		 *     const base64String = CryptoJS.enc.Base64.stringify(wordArray);
 		 */
-		stringify: function (wordArray) {
-			// Shortcuts
-			var words = wordArray.words;
-			var sigBytes = wordArray.sigBytes;
-			var map = this._map;
-
-			// Clamp excess bits
-			wordArray.clamp();
-
+		static stringify = wordArray => {
+			const words = wordArray.words; // Shortcuts
+			const sigBytes = wordArray.sigBytes; // Shortcuts
+			const map = Base64._map; // Shortcuts
+			wordArray.clamp(); // Clamp excess bits
 			// Convert
-			var base64Chars = [];
-			for (var i = 0; i < sigBytes; i += 3) {
-				var byte1 = (words[i >>> 2] >>> (24 - (i % 4) * 8)) & 0xff;
-				var byte2 = (words[(i + 1) >>> 2] >>> (24 - ((i + 1) % 4) * 8)) & 0xff;
-				var byte3 = (words[(i + 2) >>> 2] >>> (24 - ((i + 2) % 4) * 8)) & 0xff;
-
-				var triplet = (byte1 << 16) | (byte2 << 8) | byte3;
-
-				for (var j = 0; j < 4 && i + j * 0.75 < sigBytes; j++) {
+			const base64Chars = [];
+			for (let i = 0; i < sigBytes; i += 3) {
+				const byte1 = (words[i >>> 2] >>> (24 - (i % 4) * 8)) & 0xff;
+				const byte2 = (words[(i + 1) >>> 2] >>> (24 - ((i + 1) % 4) * 8)) & 0xff;
+				const byte3 = (words[(i + 2) >>> 2] >>> (24 - ((i + 2) % 4) * 8)) & 0xff;
+				const triplet = (byte1 << 16) | (byte2 << 8) | byte3;
+				for (let j = 0; j < 4 && i + j * 0.75 < sigBytes; j++)
 					base64Chars.push(map.charAt((triplet >>> (6 * (3 - j))) & 0x3f));
-				}
 			}
-
-			// Add padding
-			var paddingChar = map.charAt(64);
-			if (paddingChar) {
-				while (base64Chars.length % 4) {
-					base64Chars.push(paddingChar);
-				}
-			}
-
+			const paddingChar = map.charAt(64); // Add padding
+			if (paddingChar) while (base64Chars.length % 4) base64Chars.push(paddingChar);
 			return base64Chars.join('');
-		},
+		};
 
 		/**
 		 * Converts a Base64 string to a word array.
@@ -67,49 +54,34 @@
 		 *
 		 * @example
 		 *
-		 *     var wordArray = CryptoJS.enc.Base64.parse(base64String);
+		 *     const wordArray = CryptoJS.enc.Base64.parse(base64String);
 		 */
-		parse: function (base64Str) {
-			// Shortcuts
-			var base64StrLength = base64Str.length;
-			var map = this._map;
-			var reverseMap = this._reverseMap;
-
-			if (!reverseMap) {
-				reverseMap = this._reverseMap = [];
-				for (var j = 0; j < map.length; j++) {
-					reverseMap[map.charCodeAt(j)] = j;
+		static parse = base64Str => {
+			const map = Base64._map; // Shortcuts
+			const reverseMap = Base64._reverseMap; // Shortcuts
+			const paddingChar = map.charAt(64); // Ignore padding
+			const paddingIndex = paddingChar ? base64Str.indexOf(paddingChar) : -1;
+			const base64StrLength = paddingIndex !== -1 ? paddingIndex : base64Str.length;
+			return Base64.parseLoop(base64Str, base64StrLength, reverseMap); // Convert
+		};
+		static init = () => {
+			// Initialize reverse map if not already done
+			for (let j = 0; j < Base64._map.length; j++) Base64._reverseMap[Base64._map.charCodeAt(j)] = j;
+		};
+		static parseLoop = (base64Str, base64StrLength, reverseMap) => {
+			const words = [];
+			let nBytes = 0;
+			for (let i = 0; i < base64StrLength; i++)
+				if (i % 4) {
+					const bits1 = reverseMap[base64Str.charCodeAt(i - 1)] << ((i % 4) * 2);
+					const bits2 = reverseMap[base64Str.charCodeAt(i)] >>> (6 - (i % 4) * 2);
+					const bitsCombined = bits1 | bits2;
+					words[nBytes >>> 2] |= bitsCombined << (24 - (nBytes % 4) * 8);
+					nBytes++;
 				}
-			}
-
-			// Ignore padding
-			var paddingChar = map.charAt(64);
-			if (paddingChar) {
-				var paddingIndex = base64Str.indexOf(paddingChar);
-				if (paddingIndex !== -1) {
-					base64StrLength = paddingIndex;
-				}
-			}
-
-			// Convert
-			return parseLoop(base64Str, base64StrLength, reverseMap);
-		},
-
-		_map: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=',
-	});
-
-	function parseLoop(base64Str, base64StrLength, reverseMap) {
-		var words = [];
-		var nBytes = 0;
-		for (var i = 0; i < base64StrLength; i++) {
-			if (i % 4) {
-				var bits1 = reverseMap[base64Str.charCodeAt(i - 1)] << ((i % 4) * 2);
-				var bits2 = reverseMap[base64Str.charCodeAt(i)] >>> (6 - (i % 4) * 2);
-				var bitsCombined = bits1 | bits2;
-				words[nBytes >>> 2] |= bitsCombined << (24 - (nBytes % 4) * 8);
-				nBytes++;
-			}
-		}
-		return WordArray.create(words, nBytes);
+			return WordArray.create(words, nBytes);
+		};
 	}
+	Base64.init(); // Initialize the reverse map on load
+	C.enc.Base64 = Base64;
 })();
