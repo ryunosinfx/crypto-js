@@ -4,16 +4,16 @@
 CryptoJS.lib.Cipher ||
 	(function (undefined) {
 		// Shortcuts
-		var C = CryptoJS;
-		var C_lib = C.lib;
-		var Base = C_lib.Base;
-		var WordArray = C_lib.WordArray;
-		var BufferedBlockAlgorithm = C_lib.BufferedBlockAlgorithm;
-		var C_enc = C.enc;
-		var Utf8 = C_enc.Utf8;
-		var Base64 = C_enc.Base64;
-		var C_algo = C.algo;
-		var EvpKDF = C_algo.EvpKDF;
+		const C = CryptoJS;
+		const C_lib = C.lib;
+		const Base = C_lib.Base;
+		const WordArray = C_lib.WordArray;
+		const BufferedBlockAlgorithm = C_lib.BufferedBlockAlgorithm;
+		const C_enc = C.enc;
+		// const Utf8 = C_enc.Utf8;
+		const Base64 = C_enc.Base64;
+		const C_algo = C.algo;
+		const EvpKDF = C_algo.EvpKDF;
 
 		/**
 		 * Abstract base cipher template.
@@ -23,7 +23,7 @@ CryptoJS.lib.Cipher ||
 		 * @property {number} _ENC_XFORM_MODE A constant representing encryption mode.
 		 * @property {number} _DEC_XFORM_MODE A constant representing decryption mode.
 		 */
-		var Cipher = (C_lib.Cipher = BufferedBlockAlgorithm.extend({
+		const Cipher = BufferedBlockAlgorithm.extend({
 			/**
 			 * Configuration options.
 			 *
@@ -43,7 +43,7 @@ CryptoJS.lib.Cipher ||
 			 *
 			 * @example
 			 *
-			 *     var cipher = CryptoJS.algo.AES.createEncryptor(keyWordArray, { iv: ivWordArray });
+			 *     const cipher = CryptoJS.algo.AES.createEncryptor(keyWordArray, { iv: ivWordArray });
 			 */
 			createEncryptor: function (key, cfg) {
 				return this.create(this._ENC_XFORM_MODE, key, cfg);
@@ -61,7 +61,7 @@ CryptoJS.lib.Cipher ||
 			 *
 			 * @example
 			 *
-			 *     var cipher = CryptoJS.algo.AES.createDecryptor(keyWordArray, { iv: ivWordArray });
+			 *     const cipher = CryptoJS.algo.AES.createDecryptor(keyWordArray, { iv: ivWordArray });
 			 */
 			createDecryptor: function (key, cfg) {
 				return this.create(this._DEC_XFORM_MODE, key, cfg);
@@ -76,18 +76,13 @@ CryptoJS.lib.Cipher ||
 			 *
 			 * @example
 			 *
-			 *     var cipher = CryptoJS.algo.AES.create(CryptoJS.algo.AES._ENC_XFORM_MODE, keyWordArray, { iv: ivWordArray });
+			 *     const cipher = CryptoJS.algo.AES.create(CryptoJS.algo.AES._ENC_XFORM_MODE, keyWordArray, { iv: ivWordArray });
 			 */
 			init: function (xformMode, key, cfg) {
-				// Apply config defaults
-				this.cfg = this.cfg.extend(cfg);
-
-				// Store transform mode and key
-				this._xformMode = xformMode;
-				this._key = key;
-
-				// Set initial values
-				this.reset();
+				this.cfg = this.cfg.extend(cfg); // Apply config defaults
+				this._xformMode = xformMode; // Store transform mode and key
+				this._key = key; // Store transform mode and key
+				this.reset(); // Set initial values
 			},
 
 			/**
@@ -98,11 +93,8 @@ CryptoJS.lib.Cipher ||
 			 *     cipher.reset();
 			 */
 			reset: function () {
-				// Reset data buffer
-				BufferedBlockAlgorithm.reset.call(this);
-
-				// Perform concrete-cipher logic
-				this._doReset();
+				BufferedBlockAlgorithm.reset.call(this); // Reset data buffer
+				this._doReset(); // Perform concrete-cipher logic
 			},
 
 			/**
@@ -114,15 +106,12 @@ CryptoJS.lib.Cipher ||
 			 *
 			 * @example
 			 *
-			 *     var encrypted = cipher.process('data');
-			 *     var encrypted = cipher.process(wordArray);
+			 *     const encrypted = cipher.process('data');
+			 *     const encrypted = cipher.process(wordArray);
 			 */
 			process: function (dataUpdate) {
-				// Append
-				this._append(dataUpdate);
-
-				// Process available blocks
-				return this._process();
+				this._append(dataUpdate); // Append
+				return this._process(); // Process available blocks
 			},
 
 			/**
@@ -135,20 +124,13 @@ CryptoJS.lib.Cipher ||
 			 *
 			 * @example
 			 *
-			 *     var encrypted = cipher.finalize();
-			 *     var encrypted = cipher.finalize('data');
-			 *     var encrypted = cipher.finalize(wordArray);
+			 *     const encrypted = cipher.finalize();
+			 *     const encrypted = cipher.finalize('data');
+			 *     const encrypted = cipher.finalize(wordArray);
 			 */
 			finalize: function (dataUpdate) {
-				// Final data update
-				if (dataUpdate) {
-					this._append(dataUpdate);
-				}
-
-				// Perform concrete-cipher logic
-				var finalProcessedData = this._doFinalize();
-
-				return finalProcessedData;
+				if (dataUpdate) this._append(dataUpdate); // Final data update
+				return this._doFinalize(); //finalProcessedData Perform concrete-cipher logic
 			},
 
 			keySize: 128 / 32,
@@ -170,56 +152,36 @@ CryptoJS.lib.Cipher ||
 			 *
 			 * @example
 			 *
-			 *     var AES = CryptoJS.lib.Cipher._createHelper(CryptoJS.algo.AES);
+			 *     const AES = CryptoJS.lib.Cipher._createHelper(CryptoJS.algo.AES);
 			 */
-			_createHelper: (function () {
-				function selectCipherStrategy(key) {
-					if (typeof key == 'string') {
-						return PasswordBasedCipher;
-					} else {
-						return SerializableCipher;
-					}
-				}
-
-				return function (cipher) {
+			_createHelper: (() => {
+				const selectCipherStrategy = key => (typeof key == 'string' ? PasswordBasedCipher : SerializableCipher);
+				return cipher => {
 					return {
-						encrypt: function (message, key, cfg) {
-							return selectCipherStrategy(key).encrypt(cipher, message, key, cfg);
-						},
-
-						decrypt: function (ciphertext, key, cfg) {
-							return selectCipherStrategy(key).decrypt(cipher, ciphertext, key, cfg);
-						},
+						encrypt: (message, key, cfg) => selectCipherStrategy(key).encrypt(cipher, message, key, cfg),
+						decrypt: (ciphertext, key, cfg) =>
+							selectCipherStrategy(key).decrypt(cipher, ciphertext, key, cfg),
 					};
 				};
 			})(),
-		}));
-
+		});
 		/**
 		 * Abstract base stream cipher template.
 		 *
 		 * @property {number} blockSize The number of 32-bit words this cipher operates on. Default: 1 (32 bits)
 		 */
-		var StreamCipher = (C_lib.StreamCipher = Cipher.extend({
+		const StreamCipher = Cipher.extend({
 			_doFinalize: function () {
-				// Process partial blocks
-				var finalProcessedBlocks = this._process(!!'flush');
-
-				return finalProcessedBlocks;
+				return this._process(!!'flush'); //finalProcessedBlocks Process partial blocks
 			},
 
 			blockSize: 1,
-		}));
-
-		/**
-		 * Mode namespace.
-		 */
-		var C_mode = (C.mode = {});
+		});
 
 		/**
 		 * Abstract base block cipher mode template.
 		 */
-		var BlockCipherMode = (C_lib.BlockCipherMode = Base.extend({
+		const BlockCipherMode = Base.extend({
 			/**
 			 * Creates this mode for encryption.
 			 *
@@ -230,7 +192,7 @@ CryptoJS.lib.Cipher ||
 			 *
 			 * @example
 			 *
-			 *     var mode = CryptoJS.mode.CBC.createEncryptor(cipher, iv.words);
+			 *     const mode = CryptoJS.mode.CBC.createEncryptor(cipher, iv.words);
 			 */
 			createEncryptor: function (cipher, iv) {
 				return this.Encryptor.create(cipher, iv);
@@ -246,7 +208,7 @@ CryptoJS.lib.Cipher ||
 			 *
 			 * @example
 			 *
-			 *     var mode = CryptoJS.mode.CBC.createDecryptor(cipher, iv.words);
+			 *     const mode = CryptoJS.mode.CBC.createDecryptor(cipher, iv.words);
 			 */
 			createDecryptor: function (cipher, iv) {
 				return this.Decryptor.create(cipher, iv);
@@ -260,27 +222,26 @@ CryptoJS.lib.Cipher ||
 			 *
 			 * @example
 			 *
-			 *     var mode = CryptoJS.mode.CBC.Encryptor.create(cipher, iv.words);
+			 *     const mode = CryptoJS.mode.CBC.Encryptor.create(cipher, iv.words);
 			 */
 			init: function (cipher, iv) {
 				this._cipher = cipher;
 				this._iv = iv;
 			},
-		}));
-
+		});
 		/**
 		 * Cipher Block Chaining mode.
 		 */
-		var CBC = (C_mode.CBC = (function () {
+		const CBC = (function () {
 			/**
 			 * Abstract base CBC mode.
 			 */
-			var CBC = BlockCipherMode.extend();
+			const _CBC = BlockCipherMode.extend();
 
 			/**
 			 * CBC encryptor.
 			 */
-			CBC.Encryptor = CBC.extend({
+			_CBC.Encryptor = _CBC.extend({
 				/**
 				 * Processes the data block at offset.
 				 *
@@ -292,23 +253,20 @@ CryptoJS.lib.Cipher ||
 				 *     mode.processBlock(data.words, offset);
 				 */
 				processBlock: function (words, offset) {
-					// Shortcuts
-					var cipher = this._cipher;
-					var blockSize = cipher.blockSize;
+					const cipher = this._cipher; // Shortcuts
+					const blockSize = cipher.blockSize; // Shortcuts
 
-					// XOR and encrypt
-					xorBlock.call(this, words, offset, blockSize);
+					xorBlock.call(this, words, offset, blockSize); // XOR and encrypt
 					cipher.encryptBlock(words, offset);
 
-					// Remember this block to use with next block
-					this._prevBlock = words.slice(offset, offset + blockSize);
+					this._prevBlock = words.slice(offset, offset + blockSize); // Remember this block to use with next block
 				},
 			});
 
 			/**
 			 * CBC decryptor.
 			 */
-			CBC.Decryptor = CBC.extend({
+			_CBC.Decryptor = _CBC.extend({
 				/**
 				 * Processes the data block at offset.
 				 *
@@ -320,56 +278,31 @@ CryptoJS.lib.Cipher ||
 				 *     mode.processBlock(data.words, offset);
 				 */
 				processBlock: function (words, offset) {
-					// Shortcuts
-					var cipher = this._cipher;
-					var blockSize = cipher.blockSize;
+					const cipher = this._cipher; // Shortcuts
+					const blockSize = cipher.blockSize; // Shortcuts
+					const thisBlock = words.slice(offset, offset + blockSize); // Remember this block to use with next block
 
-					// Remember this block to use with next block
-					var thisBlock = words.slice(offset, offset + blockSize);
-
-					// Decrypt and XOR
-					cipher.decryptBlock(words, offset);
+					cipher.decryptBlock(words, offset); // Decrypt and XOR
 					xorBlock.call(this, words, offset, blockSize);
 
-					// This block becomes the previous block
-					this._prevBlock = thisBlock;
+					this._prevBlock = thisBlock; // This block becomes the previous block
 				},
 			});
 
 			function xorBlock(words, offset, blockSize) {
-				var block;
-
-				// Shortcut
-				var iv = this._iv;
-
-				// Choose mixing block
-				if (iv) {
-					block = iv;
-
-					// Remove IV for subsequent blocks
-					this._iv = undefined;
-				} else {
-					block = this._prevBlock;
-				}
-
-				// XOR blocks
-				for (var i = 0; i < blockSize; i++) {
-					words[offset + i] ^= block[i];
-				}
+				const iv = this._iv; // Shortcut
+				const block = iv ? iv : this._prevBlock; // Choose mixing block
+				if (iv) this._iv = undefined; // Remove IV for subsequent blocks
+				else for (let i = 0; i < blockSize; i++) words[offset + i] ^= block[i]; // XOR blocks
 			}
 
-			return CBC;
-		})());
-
-		/**
-		 * Padding namespace.
-		 */
-		var C_pad = (C.pad = {});
+			return _CBC;
+		})();
 
 		/**
 		 * PKCS #5/7 padding strategy.
 		 */
-		var Pkcs7 = (C_pad.Pkcs7 = {
+		const Pkcs7 = {
 			/**
 			 * Pads data using the algorithm defined in PKCS #5/7.
 			 *
@@ -383,24 +316,14 @@ CryptoJS.lib.Cipher ||
 			 *     CryptoJS.pad.Pkcs7.pad(wordArray, 4);
 			 */
 			pad: function (data, blockSize) {
-				// Shortcut
-				var blockSizeBytes = blockSize * 4;
-
-				// Count padding bytes
-				var nPaddingBytes = blockSizeBytes - (data.sigBytes % blockSizeBytes);
-
-				// Create padding word
-				var paddingWord = (nPaddingBytes << 24) | (nPaddingBytes << 16) | (nPaddingBytes << 8) | nPaddingBytes;
-
-				// Create padding
-				var paddingWords = [];
-				for (var i = 0; i < nPaddingBytes; i += 4) {
-					paddingWords.push(paddingWord);
-				}
-				var padding = WordArray.create(paddingWords, nPaddingBytes);
-
-				// Add padding
-				data.concat(padding);
+				const blockSizeBytes = blockSize * 4; // Shortcut
+				const nPaddingBytes = blockSizeBytes - (data.sigBytes % blockSizeBytes); // Count padding bytes
+				const paddingWord =
+					(nPaddingBytes << 24) | (nPaddingBytes << 16) | (nPaddingBytes << 8) | nPaddingBytes; // Create padding word
+				const paddingWords = []; // Create padding
+				for (let i = 0; i < nPaddingBytes; i += 4) paddingWords.push(paddingWord);
+				const padding = WordArray.create(paddingWords, nPaddingBytes);
+				data.concat(padding); // Add padding
 			},
 
 			/**
@@ -415,20 +338,16 @@ CryptoJS.lib.Cipher ||
 			 *     CryptoJS.pad.Pkcs7.unpad(wordArray);
 			 */
 			unpad: function (data) {
-				// Get number of padding bytes from last byte
-				var nPaddingBytes = data.words[(data.sigBytes - 1) >>> 2] & 0xff;
-
-				// Remove padding
-				data.sigBytes -= nPaddingBytes;
+				const nPaddingBytes = data.words[(data.sigBytes - 1) >>> 2] & 0xff; // Get number of padding bytes from last byte
+				data.sigBytes -= nPaddingBytes; // Remove padding
 			},
-		});
-
+		};
 		/**
 		 * Abstract base block cipher template.
 		 *
 		 * @property {number} blockSize The number of 32-bit words this cipher operates on. Default: 4 (128 bits)
 		 */
-		var BlockCipher = (C_lib.BlockCipher = Cipher.extend({
+		const BlockCipher = Cipher.extend({
 			/**
 			 * Configuration options.
 			 *
@@ -441,25 +360,13 @@ CryptoJS.lib.Cipher ||
 			}),
 
 			reset: function () {
-				var modeCreator;
-
-				// Reset cipher
-				Cipher.reset.call(this);
-
-				// Shortcuts
-				var cfg = this.cfg;
-				var iv = cfg.iv;
-				var mode = cfg.mode;
-
-				// Reset block mode
-				if (this._xformMode == this._ENC_XFORM_MODE) {
-					modeCreator = mode.createEncryptor;
-				} /* if (this._xformMode == this._DEC_XFORM_MODE) */ else {
-					modeCreator = mode.createDecryptor;
-					// Keep at least one block in the buffer for unpadding
-					this._minBufferSize = 1;
-				}
-
+				Cipher.reset.call(this); // Reset cipher
+				const cfg = this.cfg; // Shortcuts
+				const iv = cfg.iv; // Shortcuts
+				const mode = cfg.mode; // Shortcuts
+				const isRestBlockMode = this._xformMode == this._ENC_XFORM_MODE; // Reset block mode
+				const modeCreator = isRestBlockMode ? mode.createEncryptor : mode.createDecryptor;
+				if (!isRestBlockMode) this._minBufferSize = 1; /* if (this._xformMode == this._DEC_XFORM_MODE) */ // Keep at least one block in the buffer for unpadding
 				if (this._mode && this._mode.__creator == modeCreator) {
 					this._mode.init(this, iv && iv.words);
 				} else {
@@ -473,32 +380,21 @@ CryptoJS.lib.Cipher ||
 			},
 
 			_doFinalize: function () {
-				var finalProcessedBlocks;
-
-				// Shortcut
-				var padding = this.cfg.padding;
-
+				let finalProcessedBlocks;
+				const padding = this.cfg.padding; // Shortcut
 				// Finalize
 				if (this._xformMode == this._ENC_XFORM_MODE) {
-					// Pad data
-					padding.pad(this._data, this.blockSize);
-
-					// Process final blocks
-					finalProcessedBlocks = this._process(!!'flush');
+					padding.pad(this._data, this.blockSize); // Pad data
+					finalProcessedBlocks = this._process(!!'flush'); // Process final blocks
 				} /* if (this._xformMode == this._DEC_XFORM_MODE) */ else {
-					// Process final blocks
-					finalProcessedBlocks = this._process(!!'flush');
-
-					// Unpad data
-					padding.unpad(finalProcessedBlocks);
+					finalProcessedBlocks = this._process(!!'flush'); // Process final blocks
+					padding.unpad(finalProcessedBlocks); // Unpad data
 				}
-
 				return finalProcessedBlocks;
 			},
 
 			blockSize: 128 / 32,
-		}));
-
+		});
 		/**
 		 * A collection of cipher parameters.
 		 *
@@ -512,7 +408,7 @@ CryptoJS.lib.Cipher ||
 		 * @property {number} blockSize The block size of the cipher.
 		 * @property {Format} formatter The default formatting strategy to convert this cipher params object to a string.
 		 */
-		var CipherParams = (C_lib.CipherParams = Base.extend({
+		const CipherParams = Base.extend({
 			/**
 			 * Initializes a newly created cipher params object.
 			 *
@@ -520,7 +416,7 @@ CryptoJS.lib.Cipher ||
 			 *
 			 * @example
 			 *
-			 *     var cipherParams = CryptoJS.lib.CipherParams.create({
+			 *     const cipherParams = CryptoJS.lib.CipherParams.create({
 			 *         ciphertext: ciphertextWordArray,
 			 *         key: keyWordArray,
 			 *         iv: ivWordArray,
@@ -547,24 +443,19 @@ CryptoJS.lib.Cipher ||
 			 *
 			 * @example
 			 *
-			 *     var string = cipherParams + '';
-			 *     var string = cipherParams.toString();
-			 *     var string = cipherParams.toString(CryptoJS.format.OpenSSL);
+			 *     const string = cipherParams + '';
+			 *     const string = cipherParams.toString();
+			 *     const string = cipherParams.toString(CryptoJS.format.OpenSSL);
 			 */
 			toString: function (formatter) {
 				return (formatter || this.formatter).stringify(this);
 			},
-		}));
-
-		/**
-		 * Format namespace.
-		 */
-		var C_format = (C.format = {});
+		});
 
 		/**
 		 * OpenSSL formatting strategy.
 		 */
-		var OpenSSLFormatter = (C_format.OpenSSL = {
+		const OpenSSLFormatter = {
 			/**
 			 * Converts a cipher params object to an OpenSSL-compatible string.
 			 *
@@ -576,22 +467,14 @@ CryptoJS.lib.Cipher ||
 			 *
 			 * @example
 			 *
-			 *     var openSSLString = CryptoJS.format.OpenSSL.stringify(cipherParams);
+			 *     const openSSLString = CryptoJS.format.OpenSSL.stringify(cipherParams);
 			 */
 			stringify: function (cipherParams) {
-				var wordArray;
-
-				// Shortcuts
-				var ciphertext = cipherParams.ciphertext;
-				var salt = cipherParams.salt;
-
-				// Format
-				if (salt) {
-					wordArray = WordArray.create([0x53616c74, 0x65645f5f]).concat(salt).concat(ciphertext);
-				} else {
-					wordArray = ciphertext;
-				}
-
+				const ciphertext = cipherParams.ciphertext; // Shortcuts
+				const salt = cipherParams.salt; // Shortcuts
+				const wordArray = salt // Format
+					? WordArray.create([0x53616c74, 0x65645f5f]).concat(salt).concat(ciphertext)
+					: ciphertext;
 				return wordArray.toString(Base64);
 			},
 
@@ -606,35 +489,25 @@ CryptoJS.lib.Cipher ||
 			 *
 			 * @example
 			 *
-			 *     var cipherParams = CryptoJS.format.OpenSSL.parse(openSSLString);
+			 *     const cipherParams = CryptoJS.format.OpenSSL.parse(openSSLString);
 			 */
 			parse: function (openSSLStr) {
-				var salt;
-
-				// Parse base64
-				var ciphertext = Base64.parse(openSSLStr);
-
-				// Shortcut
-				var ciphertextWords = ciphertext.words;
-
+				let salt;
+				const ciphertext = Base64.parse(openSSLStr); // Parse base64
+				const ciphertextWords = ciphertext.words; // Shortcut
 				// Test for salt
 				if (ciphertextWords[0] == 0x53616c74 && ciphertextWords[1] == 0x65645f5f) {
-					// Extract salt
-					salt = WordArray.create(ciphertextWords.slice(2, 4));
-
-					// Remove salt from ciphertext
-					ciphertextWords.splice(0, 4);
+					salt = WordArray.create(ciphertextWords.slice(2, 4)); // Extract salt
+					ciphertextWords.splice(0, 4); // Remove salt from ciphertext
 					ciphertext.sigBytes -= 16;
 				}
-
-				return CipherParams.create({ ciphertext: ciphertext, salt: salt });
+				return CipherParams.create({ ciphertext, salt });
 			},
-		});
-
+		};
 		/**
 		 * A cipher wrapper that returns ciphertext as a serializable cipher params object.
 		 */
-		var SerializableCipher = (C_lib.SerializableCipher = Base.extend({
+		const SerializableCipher = Base.extend({
 			/**
 			 * Configuration options.
 			 *
@@ -658,31 +531,25 @@ CryptoJS.lib.Cipher ||
 			 *
 			 * @example
 			 *
-			 *     var ciphertextParams = CryptoJS.lib.SerializableCipher.encrypt(CryptoJS.algo.AES, message, key);
-			 *     var ciphertextParams = CryptoJS.lib.SerializableCipher.encrypt(CryptoJS.algo.AES, message, key, { iv: iv });
-			 *     var ciphertextParams = CryptoJS.lib.SerializableCipher.encrypt(CryptoJS.algo.AES, message, key, { iv: iv, format: CryptoJS.format.OpenSSL });
+			 *     const ciphertextParams = CryptoJS.lib.SerializableCipher.encrypt(CryptoJS.algo.AES, message, key);
+			 *     const ciphertextParams = CryptoJS.lib.SerializableCipher.encrypt(CryptoJS.algo.AES, message, key, { iv: iv });
+			 *     const ciphertextParams = CryptoJS.lib.SerializableCipher.encrypt(CryptoJS.algo.AES, message, key, { iv: iv, format: CryptoJS.format.OpenSSL });
 			 */
 			encrypt: function (cipher, message, key, cfg) {
-				// Apply config defaults
-				cfg = this.cfg.extend(cfg);
-
-				// Encrypt
-				var encryptor = cipher.createEncryptor(key, cfg);
-				var ciphertext = encryptor.finalize(message);
-
-				// Shortcut
-				var cipherCfg = encryptor.cfg;
-
+				const cfgExtended = this.cfg.extend(cfg); // Apply config defaults
+				const encryptor = cipher.createEncryptor(key, cfgExtended); // Encrypt
+				const ciphertext = encryptor.finalize(message);
+				const cipherCfg = encryptor.cfg; // Shortcut
 				// Create and return serializable cipher params
 				return CipherParams.create({
-					ciphertext: ciphertext,
+					ciphertext,
 					key: key,
 					iv: cipherCfg.iv,
 					algorithm: cipher,
 					mode: cipherCfg.mode,
 					padding: cipherCfg.padding,
 					blockSize: cipher.blockSize,
-					formatter: cfg.format,
+					formatter: cfgExtended.format,
 				});
 			},
 
@@ -700,20 +567,13 @@ CryptoJS.lib.Cipher ||
 			 *
 			 * @example
 			 *
-			 *     var plaintext = CryptoJS.lib.SerializableCipher.decrypt(CryptoJS.algo.AES, formattedCiphertext, key, { iv: iv, format: CryptoJS.format.OpenSSL });
-			 *     var plaintext = CryptoJS.lib.SerializableCipher.decrypt(CryptoJS.algo.AES, ciphertextParams, key, { iv: iv, format: CryptoJS.format.OpenSSL });
+			 *     const plaintext = CryptoJS.lib.SerializableCipher.decrypt(CryptoJS.algo.AES, formattedCiphertext, key, { iv: iv, format: CryptoJS.format.OpenSSL });
+			 *     const plaintext = CryptoJS.lib.SerializableCipher.decrypt(CryptoJS.algo.AES, ciphertextParams, key, { iv: iv, format: CryptoJS.format.OpenSSL });
 			 */
 			decrypt: function (cipher, ciphertext, key, cfg) {
-				// Apply config defaults
-				cfg = this.cfg.extend(cfg);
-
-				// Convert string to CipherParams
-				ciphertext = this._parse(ciphertext, cfg.format);
-
-				// Decrypt
-				var plaintext = cipher.createDecryptor(key, cfg).finalize(ciphertext.ciphertext);
-
-				return plaintext;
+				const cfgExtended = this.cfg.extend(cfg); // Apply config defaults
+				const ciphertextParsed = this._parse(ciphertext, cfgExtended.format); // Convert string to CipherParams
+				return cipher.createDecryptor(key, cfgExtended).finalize(ciphertextParsed.ciphertext); //plaintext Decrypt
 			},
 
 			/**
@@ -729,26 +589,17 @@ CryptoJS.lib.Cipher ||
 			 *
 			 * @example
 			 *
-			 *     var ciphertextParams = CryptoJS.lib.SerializableCipher._parse(ciphertextStringOrParams, format);
+			 *     const ciphertextParams = CryptoJS.lib.SerializableCipher._parse(ciphertextStringOrParams, format);
 			 */
 			_parse: function (ciphertext, format) {
-				if (typeof ciphertext == 'string') {
-					return format.parse(ciphertext, this);
-				} else {
-					return ciphertext;
-				}
+				return typeof ciphertext === 'string' ? format.parse(ciphertext, this) : ciphertext;
 			},
-		}));
-
-		/**
-		 * Key derivation function namespace.
-		 */
-		var C_kdf = (C.kdf = {});
+		});
 
 		/**
 		 * OpenSSL key derivation function.
 		 */
-		var OpenSSLKdf = (C_kdf.OpenSSL = {
+		const OpenSSLKdf = {
 			/**
 			 * Derives a key and IV from a password.
 			 *
@@ -763,36 +614,24 @@ CryptoJS.lib.Cipher ||
 			 *
 			 * @example
 			 *
-			 *     var derivedParams = CryptoJS.kdf.OpenSSL.execute('Password', 256/32, 128/32);
-			 *     var derivedParams = CryptoJS.kdf.OpenSSL.execute('Password', 256/32, 128/32, 'saltsalt');
+			 *     const derivedParams = CryptoJS.kdf.OpenSSL.execute('Password', 256/32, 128/32);
+			 *     const derivedParams = CryptoJS.kdf.OpenSSL.execute('Password', 256/32, 128/32, 'saltsalt');
 			 */
 			execute: function (password, keySize, ivSize, salt, hasher) {
-				// Generate random salt
-				if (!salt) {
-					salt = WordArray.random(64 / 8);
-				}
-
-				// Derive key and IV
-				if (!hasher) {
-					var key = EvpKDF.create({ keySize: keySize + ivSize }).compute(password, salt);
-				} else {
-					var key = EvpKDF.create({ keySize: keySize + ivSize, hasher: hasher }).compute(password, salt);
-				}
-
-				// Separate key and IV
-				var iv = WordArray.create(key.words.slice(keySize), ivSize * 4);
+				const saltForUse = salt ? salt : WordArray.random(64 / 8); // Generate random salt
+				const key = hasher // Derive key and IV
+					? EvpKDF.create({ keySize: keySize + ivSize, hasher: hasher }).compute(password, saltForUse)
+					: EvpKDF.create({ keySize: keySize + ivSize }).compute(password, saltForUse);
+				const iv = WordArray.create(key.words.slice(keySize), ivSize * 4); // Separate key and IV
 				key.sigBytes = keySize * 4;
-
-				// Return params
-				return CipherParams.create({ key: key, iv: iv, salt: salt });
+				return CipherParams.create({ key: key, iv: iv, salt: saltForUse }); // Return params
 			},
-		});
-
+		};
 		/**
 		 * A serializable cipher wrapper that derives the key from a password,
 		 * and returns ciphertext as a serializable cipher params object.
 		 */
-		var PasswordBasedCipher = (C_lib.PasswordBasedCipher = SerializableCipher.extend({
+		const PasswordBasedCipher = SerializableCipher.extend({
 			/**
 			 * Configuration options.
 			 *
@@ -816,25 +655,27 @@ CryptoJS.lib.Cipher ||
 			 *
 			 * @example
 			 *
-			 *     var ciphertextParams = CryptoJS.lib.PasswordBasedCipher.encrypt(CryptoJS.algo.AES, message, 'password');
-			 *     var ciphertextParams = CryptoJS.lib.PasswordBasedCipher.encrypt(CryptoJS.algo.AES, message, 'password', { format: CryptoJS.format.OpenSSL });
+			 *     const ciphertextParams = CryptoJS.lib.PasswordBasedCipher.encrypt(CryptoJS.algo.AES, message, 'password');
+			 *     const ciphertextParams = CryptoJS.lib.PasswordBasedCipher.encrypt(CryptoJS.algo.AES, message, 'password', { format: CryptoJS.format.OpenSSL });
 			 */
 			encrypt: function (cipher, message, password, cfg) {
-				// Apply config defaults
-				cfg = this.cfg.extend(cfg);
-
-				// Derive key and other params
-				var derivedParams = cfg.kdf.execute(password, cipher.keySize, cipher.ivSize, cfg.salt, cfg.hasher);
-
-				// Add IV to config
-				cfg.iv = derivedParams.iv;
-
-				// Encrypt
-				var ciphertext = SerializableCipher.encrypt.call(this, cipher, message, derivedParams.key, cfg);
-
-				// Mix in derived params
-				ciphertext.mixIn(derivedParams);
-
+				const cfgExtended = this.cfg.extend(cfg); // Apply config defaults
+				const derivedParams = cfgExtended.kdf.execute(
+					password,
+					cipher.keySize,
+					cipher.ivSize,
+					cfgExtended.salt,
+					cfgExtended.hasher
+				); // Derive key and other params
+				cfgExtended.iv = derivedParams.iv; // Add IV to config
+				const ciphertext = SerializableCipher.encrypt.call(
+					this,
+					cipher,
+					message,
+					derivedParams.key,
+					cfgExtended
+				); // Encrypt
+				ciphertext.mixIn(derivedParams); // Mix in derived params
 				return ciphertext;
 			},
 
@@ -852,32 +693,47 @@ CryptoJS.lib.Cipher ||
 			 *
 			 * @example
 			 *
-			 *     var plaintext = CryptoJS.lib.PasswordBasedCipher.decrypt(CryptoJS.algo.AES, formattedCiphertext, 'password', { format: CryptoJS.format.OpenSSL });
-			 *     var plaintext = CryptoJS.lib.PasswordBasedCipher.decrypt(CryptoJS.algo.AES, ciphertextParams, 'password', { format: CryptoJS.format.OpenSSL });
+			 *     const plaintext = CryptoJS.lib.PasswordBasedCipher.decrypt(CryptoJS.algo.AES, formattedCiphertext, 'password', { format: CryptoJS.format.OpenSSL });
+			 *     const plaintext = CryptoJS.lib.PasswordBasedCipher.decrypt(CryptoJS.algo.AES, ciphertextParams, 'password', { format: CryptoJS.format.OpenSSL });
 			 */
 			decrypt: function (cipher, ciphertext, password, cfg) {
-				// Apply config defaults
-				cfg = this.cfg.extend(cfg);
-
-				// Convert string to CipherParams
-				ciphertext = this._parse(ciphertext, cfg.format);
-
+				const cfgExtended = this.cfg.extend(cfg); // Apply config defaults
+				const ciphertextParsed = this._parse(ciphertext, cfgExtended.format); // Convert string to CipherParams
 				// Derive key and other params
-				var derivedParams = cfg.kdf.execute(
+				const derivedParams = cfgExtended.kdf.execute(
 					password,
 					cipher.keySize,
 					cipher.ivSize,
-					ciphertext.salt,
-					cfg.hasher
+					ciphertextParsed.salt,
+					cfgExtended.hasher
 				);
-
-				// Add IV to config
-				cfg.iv = derivedParams.iv;
-
-				// Decrypt
-				var plaintext = SerializableCipher.decrypt.call(this, cipher, ciphertext, derivedParams.key, cfg);
-
-				return plaintext;
+				cfgExtended.iv = derivedParams.iv; // Add IV to config
+				return SerializableCipher.decrypt.call(this, cipher, ciphertextParsed, derivedParams.key, cfgExtended); //plaintext// Decrypt
 			},
-		}));
+		});
+
+		/**
+		 * Mode namespace.
+		 */
+		C.mode = { CBC };
+		/**
+		 * Padding namespace.
+		 */
+		C.pad = { Pkcs7 };
+
+		/**
+		 * Format namespace.
+		 */
+		C.format = { OpenSSL: OpenSSLFormatter };
+		/**
+		 * Key derivation function namespace.
+		 */
+		C.kdf = { OpenSSL: OpenSSLKdf };
+		C_lib.Cipher = Cipher;
+		C_lib.StreamCipher = StreamCipher;
+		C_lib.BlockCipherMode = BlockCipherMode;
+		C_lib.BlockCipher = BlockCipher;
+		C_lib.CipherParams = CipherParams;
+		C_lib.SerializableCipher = SerializableCipher;
+		C_lib.PasswordBasedCipher = PasswordBasedCipher;
 	})();
