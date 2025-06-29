@@ -1,8 +1,8 @@
-const data = {};
 YUI.add(
 	'pad-iso10126-test',
 	Y => {
 		const C = CryptoJS;
+		const data = {};
 
 		Y.Test.Runner.add(
 			new Y.Test.Case({

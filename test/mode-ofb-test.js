@@ -1,8 +1,8 @@
-const data = {};
 YUI.add(
 	'mode-ofb-test',
 	Y => {
 		const C = CryptoJS;
+		const data = {};
 
 		Y.Test.Runner.add(
 			new Y.Test.Case({

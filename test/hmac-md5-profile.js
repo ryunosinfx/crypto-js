@@ -1,8 +1,8 @@
-const data = {};
 YUI.add(
 	'algo-hmac-md5-profile',
 	Y => {
 		const C = CryptoJS;
+		const data = {};
 
 		Y.Profiler.add({
 			name: 'HMAC MD5',

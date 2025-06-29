@@ -1,8 +1,8 @@
-const data = {};
 YUI.add(
 	'lib-base-test',
 	Y => {
-		var C = CryptoJS;
+		const C = CryptoJS;
+		const data = {};
 
 		Y.Test.Runner.add(
 			new Y.Test.Case({

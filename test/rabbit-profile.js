@@ -1,8 +1,8 @@
-const data = {};
 YUI.add(
 	'algo-rabbit-profile',
 	Y => {
 		const C = CryptoJS;
+		const data = {};
 
 		Y.Profiler.add({
 			name: 'Rabbit',

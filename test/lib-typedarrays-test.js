@@ -1,8 +1,8 @@
-const data = {};
 YUI.add(
 	'lib-wordarray-test',
 	Y => {
 		const C = CryptoJS;
+		const data = {};
 
 		if (typeof ArrayBuffer != 'undefined') {
 			Y.Test.Runner.add(

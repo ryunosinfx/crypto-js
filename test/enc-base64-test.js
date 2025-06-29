@@ -3,10 +3,10 @@ YUI.add(
 	Y => {
 		const C = CryptoJS;
 
+		console.log('enc-base64-test.js loaded', C.enc.Base64);
 		Y.Test.Runner.add(
 			new Y.Test.Case({
 				name: 'Base64',
-
 				testStringify0: () =>
 					Y.Assert.areEqual('', C.enc.Base64.stringify(C.lib.WordArray.create([0x666f6f62, 0x61720000], 0))),
 				testStringify1: () =>
