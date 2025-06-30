@@ -1,25 +1,18 @@
 /**
  * ISO 10126 padding strategy.
  */
-CryptoJS.pad.Iso10126 = {
-	pad: function (data, blockSize) {
-		// Shortcut
-		var blockSizeBytes = blockSize * 4;
-
-		// Count padding bytes
-		var nPaddingBytes = blockSizeBytes - (data.sigBytes % blockSizeBytes);
-
-		// Pad
+class Iso10126 {
+	static pad = (data, blockSize) => {
+		const blockSizeBytes = blockSize * 4; // Shortcut
+		const nPaddingBytes = blockSizeBytes - (data.sigBytes % blockSizeBytes); // Count padding bytes
 		data.concat(CryptoJS.lib.WordArray.random(nPaddingBytes - 1)).concat(
-			CryptoJS.lib.WordArray.create([nPaddingBytes << 24], 1)
+			CryptoJS.lib.WordArray.create([nPaddingBytes << 24], 1) // Pad
 		);
-	},
+	};
 
-	unpad: function (data) {
-		// Get number of padding bytes from last byte
-		var nPaddingBytes = data.words[(data.sigBytes - 1) >>> 2] & 0xff;
-
-		// Remove padding
-		data.sigBytes -= nPaddingBytes;
-	},
-};
+	static unpad = data => {
+		const nPaddingBytes = data.words[(data.sigBytes - 1) >>> 2] & 0xff; // Get number of padding bytes from last byte
+		data.sigBytes -= nPaddingBytes; // Remove padding
+	};
+}
+CryptoJS.pad.Iso10126 = Iso10126;

@@ -1,13 +1,11 @@
 (function (undefined) {
 	// Shortcuts
-	var C = CryptoJS;
-	var C_lib = C.lib;
-	var CipherParams = C_lib.CipherParams;
-	var C_enc = C.enc;
-	var Hex = C_enc.Hex;
-	var C_format = C.format;
-
-	var HexFormatter = (C_format.Hex = {
+	const C = CryptoJS;
+	const C_lib = C.lib;
+	const CipherParams = C_lib.CipherParams;
+	const C_enc = C.enc;
+	const Hex = C_enc.Hex;
+	class HexFormatter {
 		/**
 		 * Converts the ciphertext of a cipher params object to a hexadecimally encoded string.
 		 *
@@ -19,11 +17,9 @@
 		 *
 		 * @example
 		 *
-		 *     var hexString = CryptoJS.format.Hex.stringify(cipherParams);
+		 *     const hexString = CryptoJS.format.Hex.stringify(cipherParams);
 		 */
-		stringify: function (cipherParams) {
-			return cipherParams.ciphertext.toString(Hex);
-		},
+		static stringify = cipherParams => cipherParams.ciphertext.toString(Hex);
 
 		/**
 		 * Converts a hexadecimally encoded ciphertext string to a cipher params object.
@@ -36,11 +32,9 @@
 		 *
 		 * @example
 		 *
-		 *     var cipherParams = CryptoJS.format.Hex.parse(hexString);
+		 *     const cipherParams = CryptoJS.format.Hex.parse(hexString);
 		 */
-		parse: function (input) {
-			var ciphertext = Hex.parse(input);
-			return CipherParams.create({ ciphertext: ciphertext });
-		},
-	});
+		static parse = input => CipherParams.create({ ciphertext: Hex.parse(input) });
+	}
+	C.format.Hex = HexFormatter;
 })();

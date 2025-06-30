@@ -1,80 +1,54 @@
 (function (Math) {
 	// Shortcuts
-	var C = CryptoJS;
-	var C_lib = C.lib;
-	var WordArray = C_lib.WordArray;
-	var Hasher = C_lib.Hasher;
-	var C_x64 = C.x64;
-	var X64Word = C_x64.Word;
-	var C_algo = C.algo;
+	const C = CryptoJS;
+	const C_lib = C.lib;
+	const WordArray = C_lib.WordArray;
+	const Hasher = C_lib.Hasher;
+	const C_x64 = C.x64;
+	const X64Word = C_x64.Word;
+	const C_algo = C.algo;
 
 	// Constants tables
-	var RHO_OFFSETS = [];
-	var PI_INDEXES = [];
-	var ROUND_CONSTANTS = [];
+	const RHO_OFFSETS = [];
+	const PI_INDEXES = [];
+	const ROUND_CONSTANTS = [];
+	const T = [];
 
 	// Compute Constants
 	(function () {
-		// Compute rho offset constants
-		var x = 1,
+		let x = 1, // Compute rho offset constants
 			y = 0;
-		for (var t = 0; t < 24; t++) {
+		for (let t = 0; t < 24; t++) {
 			RHO_OFFSETS[x + 5 * y] = (((t + 1) * (t + 2)) / 2) % 64;
-
-			var newX = y % 5;
-			var newY = (2 * x + 3 * y) % 5;
+			const newX = y % 5;
+			const newY = (2 * x + 3 * y) % 5;
 			x = newX;
 			y = newY;
 		}
-
-		// Compute pi index constants
-		for (var x = 0; x < 5; x++) {
-			for (var y = 0; y < 5; y++) {
-				PI_INDEXES[x + 5 * y] = y + ((2 * x + 3 * y) % 5) * 5;
-			}
-		}
-
-		// Compute round constants
-		var LFSR = 0x01;
-		for (var i = 0; i < 24; i++) {
-			var roundConstantMsw = 0;
-			var roundConstantLsw = 0;
-
-			for (var j = 0; j < 7; j++) {
+		for (let x = 0; x < 5; x++) for (let y = 0; y < 5; y++) PI_INDEXES[x + 5 * y] = y + ((2 * x + 3 * y) % 5) * 5; // Compute pi index constants
+		let LFSR = 0x01; // Compute round constants
+		for (let i = 0; i < 24; i++) {
+			let roundConstantMsw = 0;
+			let roundConstantLsw = 0;
+			for (let j = 0; j < 7; j++) {
 				if (LFSR & 0x01) {
-					var bitPosition = (1 << j) - 1;
-					if (bitPosition < 32) {
-						roundConstantLsw ^= 1 << bitPosition;
-					} /* if (bitPosition >= 32) */ else {
-						roundConstantMsw ^= 1 << (bitPosition - 32);
-					}
+					const bitPosition = (1 << j) - 1;
+					if (bitPosition < 32) roundConstantLsw ^= 1 << bitPosition;
+					else roundConstantMsw ^= 1 << (bitPosition - 32); /* if (bitPosition >= 32) */
 				}
-
 				// Compute next LFSR
-				if (LFSR & 0x80) {
-					// Primitive polynomial over GF(2): x^8 + x^6 + x^5 + x^4 + 1
-					LFSR = (LFSR << 1) ^ 0x71;
-				} else {
-					LFSR <<= 1;
-				}
+				if (LFSR & 0x80)
+					LFSR = (LFSR << 1) ^ 0x71; // Primitive polynomial over GF(2): x^8 + x^6 + x^5 + x^4 + 1
+				else LFSR <<= 1;
 			}
-
 			ROUND_CONSTANTS[i] = X64Word.create(roundConstantMsw, roundConstantLsw);
 		}
+		for (let i = 0; i < 25; i++) T[i] = X64Word.create(); // Reusable objects for temporary values
 	})();
-
-	// Reusable objects for temporary values
-	var T = [];
-	(function () {
-		for (var i = 0; i < 25; i++) {
-			T[i] = X64Word.create();
-		}
-	})();
-
 	/**
 	 * SHA-3 hash algorithm.
 	 */
-	var SHA3 = (C_algo.SHA3 = Hasher.extend({
+	const SHA3 = Hasher.extend({
 		/**
 		 * Configuration options.
 		 *
@@ -88,81 +62,63 @@
 		}),
 
 		_doReset: function () {
-			var state = (this._state = []);
-			for (var i = 0; i < 25; i++) {
-				state[i] = new X64Word.init();
-			}
-
+			const state = (this._state = []);
+			for (let i = 0; i < 25; i++) state[i] = new X64Word.init();
 			this.blockSize = (1600 - 2 * this.cfg.outputLength) / 32;
 		},
 
 		_doProcessBlock: function (M, offset) {
-			// Shortcuts
-			var state = this._state;
-			var nBlockSizeLanes = this.blockSize / 2;
-
+			const state = this._state; // Shortcuts
+			const nBlockSizeLanes = this.blockSize / 2; // Shortcuts
 			// Absorb
-			for (var i = 0; i < nBlockSizeLanes; i++) {
-				// Shortcuts
-				var M2i = M[offset + 2 * i];
-				var M2i1 = M[offset + 2 * i + 1];
-
-				// Swap endian
-				M2i = (((M2i << 8) | (M2i >>> 24)) & 0x00ff00ff) | (((M2i << 24) | (M2i >>> 8)) & 0xff00ff00);
-				M2i1 = (((M2i1 << 8) | (M2i1 >>> 24)) & 0x00ff00ff) | (((M2i1 << 24) | (M2i1 >>> 8)) & 0xff00ff00);
-
-				// Absorb message into state
-				var lane = state[i];
+			for (let i = 0; i < nBlockSizeLanes; i++) {
+				let M2i = M[offset + 2 * i]; // Shortcuts
+				let M2i1 = M[offset + 2 * i + 1]; // Shortcuts
+				M2i = (((M2i << 8) | (M2i >>> 24)) & 0x00ff00ff) | (((M2i << 24) | (M2i >>> 8)) & 0xff00ff00); // Swap endian
+				M2i1 = (((M2i1 << 8) | (M2i1 >>> 24)) & 0x00ff00ff) | (((M2i1 << 24) | (M2i1 >>> 8)) & 0xff00ff00); // Swap endian
+				const lane = state[i]; // Absorb message into state
 				lane.high ^= M2i1;
 				lane.low ^= M2i;
 			}
-
 			// Rounds
-			for (var round = 0; round < 24; round++) {
+			for (let round = 0; round < 24; round++) {
 				// Theta
-				for (var x = 0; x < 5; x++) {
+				for (let x = 0; x < 5; x++) {
 					// Mix column lanes
-					var tMsw = 0,
+					let tMsw = 0,
 						tLsw = 0;
-					for (var y = 0; y < 5; y++) {
-						var lane = state[x + 5 * y];
+					for (let y = 0; y < 5; y++) {
+						const lane = state[x + 5 * y];
 						tMsw ^= lane.high;
 						tLsw ^= lane.low;
 					}
-
 					// Temporary values
-					var Tx = T[x];
+					const Tx = T[x];
 					Tx.high = tMsw;
 					Tx.low = tLsw;
 				}
-				for (var x = 0; x < 5; x++) {
-					// Shortcuts
-					var Tx4 = T[(x + 4) % 5];
-					var Tx1 = T[(x + 1) % 5];
-					var Tx1Msw = Tx1.high;
-					var Tx1Lsw = Tx1.low;
-
+				for (let x = 0; x < 5; x++) {
+					const Tx4 = T[(x + 4) % 5]; // Shortcuts
+					const Tx1 = T[(x + 1) % 5]; // Shortcuts
+					const Tx1Msw = Tx1.high; // Shortcuts
+					const Tx1Lsw = Tx1.low; // Shortcuts
 					// Mix surrounding columns
-					var tMsw = Tx4.high ^ ((Tx1Msw << 1) | (Tx1Lsw >>> 31));
-					var tLsw = Tx4.low ^ ((Tx1Lsw << 1) | (Tx1Msw >>> 31));
-					for (var y = 0; y < 5; y++) {
-						var lane = state[x + 5 * y];
+					const tMsw = Tx4.high ^ ((Tx1Msw << 1) | (Tx1Lsw >>> 31));
+					const tLsw = Tx4.low ^ ((Tx1Lsw << 1) | (Tx1Msw >>> 31));
+					for (let y = 0; y < 5; y++) {
+						const lane = state[x + 5 * y];
 						lane.high ^= tMsw;
 						lane.low ^= tLsw;
 					}
 				}
-
 				// Rho Pi
-				for (var laneIndex = 1; laneIndex < 25; laneIndex++) {
-					var tMsw;
-					var tLsw;
-
-					// Shortcuts
-					var lane = state[laneIndex];
-					var laneMsw = lane.high;
-					var laneLsw = lane.low;
-					var rhoOffset = RHO_OFFSETS[laneIndex];
-
+				for (let laneIndex = 1; laneIndex < 25; laneIndex++) {
+					let tMsw;
+					let tLsw;
+					const lane = state[laneIndex]; // Shortcuts
+					let laneMsw = lane.high; // Shortcuts
+					let laneLsw = lane.low; // Shortcuts
+					const rhoOffset = RHO_OFFSETS[laneIndex]; // Shortcuts
 					// Rotate lanes
 					if (rhoOffset < 32) {
 						tMsw = (laneMsw << rhoOffset) | (laneLsw >>> (32 - rhoOffset));
@@ -171,72 +127,52 @@
 						tMsw = (laneLsw << (rhoOffset - 32)) | (laneMsw >>> (64 - rhoOffset));
 						tLsw = (laneMsw << (rhoOffset - 32)) | (laneLsw >>> (64 - rhoOffset));
 					}
-
-					// Transpose lanes
-					var TPiLane = T[PI_INDEXES[laneIndex]];
+					const TPiLane = T[PI_INDEXES[laneIndex]]; // Transpose lanes
 					TPiLane.high = tMsw;
 					TPiLane.low = tLsw;
 				}
-
-				// Rho pi at x = y = 0
-				var T0 = T[0];
-				var state0 = state[0];
+				const T0 = T[0]; // Rho pi at x = y = 0
+				const state0 = state[0];
 				T0.high = state0.high;
 				T0.low = state0.low;
 
 				// Chi
-				for (var x = 0; x < 5; x++) {
-					for (var y = 0; y < 5; y++) {
-						// Shortcuts
-						var laneIndex = x + 5 * y;
-						var lane = state[laneIndex];
-						var TLane = T[laneIndex];
-						var Tx1Lane = T[((x + 1) % 5) + 5 * y];
-						var Tx2Lane = T[((x + 2) % 5) + 5 * y];
-
-						// Mix rows
-						lane.high = TLane.high ^ (~Tx1Lane.high & Tx2Lane.high);
-						lane.low = TLane.low ^ (~Tx1Lane.low & Tx2Lane.low);
+				for (let x = 0; x < 5; x++)
+					for (let y = 0; y < 5; y++) {
+						const laneIndex = x + 5 * y; // Shortcuts
+						const lane = state[laneIndex]; // Shortcuts
+						const TLane = T[laneIndex]; // Shortcuts
+						const Tx1Lane = T[((x + 1) % 5) + 5 * y]; // Shortcuts
+						const Tx2Lane = T[((x + 2) % 5) + 5 * y]; // Shortcuts
+						lane.high = TLane.high ^ (~Tx1Lane.high & Tx2Lane.high); // Mix rows
+						lane.low = TLane.low ^ (~Tx1Lane.low & Tx2Lane.low); // Mix rows
 					}
-				}
-
-				// Iota
-				var lane = state[0];
-				var roundConstant = ROUND_CONSTANTS[round];
+				const lane = state[0]; // Iota
+				const roundConstant = ROUND_CONSTANTS[round];
 				lane.high ^= roundConstant.high;
 				lane.low ^= roundConstant.low;
 			}
 		},
 
 		_doFinalize: function () {
-			// Shortcuts
-			var data = this._data;
-			var dataWords = data.words;
-			var nBitsTotal = this._nDataBytes * 8;
-			var nBitsLeft = data.sigBytes * 8;
-			var blockSizeBits = this.blockSize * 32;
-
+			const data = this._data; // Shortcuts
+			const dataWords = data.words; // Shortcuts
+			// const nBitsTotal = this._nDataBytes * 8;// Shortcuts
+			const nBitsLeft = data.sigBytes * 8; // Shortcuts
+			const blockSizeBits = this.blockSize * 32; // Shortcuts
 			// Add padding
 			dataWords[nBitsLeft >>> 5] |= 0x1 << (24 - (nBitsLeft % 32));
 			dataWords[((Math.ceil((nBitsLeft + 1) / blockSizeBits) * blockSizeBits) >>> 5) - 1] |= 0x80;
 			data.sigBytes = dataWords.length * 4;
-
-			// Hash final blocks
-			this._process();
-
-			// Shortcuts
-			var state = this._state;
-			var outputLengthBytes = this.cfg.outputLength / 8;
-			var outputLengthLanes = outputLengthBytes / 8;
-
-			// Squeeze
-			var hashWords = [];
-			for (var i = 0; i < outputLengthLanes; i++) {
-				// Shortcuts
-				var lane = state[i];
-				var laneMsw = lane.high;
-				var laneLsw = lane.low;
-
+			this._process(); // Hash final blocks
+			const state = this._state; // Shortcuts
+			const outputLengthBytes = this.cfg.outputLength / 8; // Shortcuts
+			const outputLengthLanes = outputLengthBytes / 8; // Shortcuts
+			const hashWords = []; // Squeeze
+			for (let i = 0; i < outputLengthLanes; i++) {
+				const lane = state[i]; // Shortcuts
+				let laneMsw = lane.high; // Shortcuts
+				let laneLsw = lane.low; // Shortcuts
 				// Swap endian
 				laneMsw =
 					(((laneMsw << 8) | (laneMsw >>> 24)) & 0x00ff00ff) |
@@ -244,28 +180,20 @@
 				laneLsw =
 					(((laneLsw << 8) | (laneLsw >>> 24)) & 0x00ff00ff) |
 					(((laneLsw << 24) | (laneLsw >>> 8)) & 0xff00ff00);
-
-				// Squeeze state to retrieve hash
-				hashWords.push(laneLsw);
-				hashWords.push(laneMsw);
+				hashWords.push(laneLsw); // Squeeze state to retrieve hash
+				hashWords.push(laneMsw); // Squeeze state to retrieve hash
 			}
-
-			// Return final computed hash
-			return new WordArray.init(hashWords, outputLengthBytes);
+			return new WordArray.init(hashWords, outputLengthBytes); // Return final computed hash
 		},
 
 		clone: function () {
-			var clone = Hasher.clone.call(this);
-
-			var state = (clone._state = this._state.slice(0));
-			for (var i = 0; i < 25; i++) {
-				state[i] = state[i].clone();
-			}
-
+			const clone = Hasher.clone.call(this);
+			const state = (clone._state = this._state.slice(0));
+			for (let i = 0; i < 25; i++) state[i] = state[i].clone();
 			return clone;
 		},
-	}));
-
+	});
+	C_algo.SHA3 = SHA3;
 	/**
 	 * Shortcut function to the hasher's object interface.
 	 *
@@ -277,8 +205,8 @@
 	 *
 	 * @example
 	 *
-	 *     var hash = CryptoJS.SHA3('message');
-	 *     var hash = CryptoJS.SHA3(wordArray);
+	 *     const hash = CryptoJS.SHA3('message');
+	 *     const hash = CryptoJS.SHA3(wordArray);
 	 */
 	C.SHA3 = Hasher._createHelper(SHA3);
 
@@ -294,7 +222,7 @@
 	 *
 	 * @example
 	 *
-	 *     var hmac = CryptoJS.HmacSHA3(message, key);
+	 *     const hmac = CryptoJS.HmacSHA3(message, key);
 	 */
 	C.HmacSHA3 = Hasher._createHmacHelper(SHA3);
 })(Math);

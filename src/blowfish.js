@@ -1,9 +1,9 @@
 (function () {
 	// Shortcuts
-	var C = CryptoJS;
-	var C_lib = C.lib;
-	var BlockCipher = C_lib.BlockCipher;
-	var C_algo = C.algo;
+	const C = CryptoJS;
+	const C_lib = C.lib;
+	const BlockCipher = C_lib.BlockCipher;
+	const C_algo = C.algo;
 
 	const N = 16;
 
@@ -140,31 +140,31 @@
 		],
 	];
 
-	var BLOWFISH_CTX = {
+	const BLOWFISH_CTX = {
 		pbox: [],
 		sbox: [],
 	};
 
-	function F(ctx, x) {
-		let a = (x >> 24) & 0xff;
-		let b = (x >> 16) & 0xff;
-		let c = (x >> 8) & 0xff;
-		let d = x & 0xff;
-
-		let y = ctx.sbox[0][a] + ctx.sbox[1][b];
-		y = y ^ ctx.sbox[2][c];
-		y = y + ctx.sbox[3][d];
+	const F = (ctx, x) => {
+		const a = (x >> 24) & 0xff;
+		const b = (x >> 16) & 0xff;
+		const c = (x >> 8) & 0xff;
+		const d = x & 0xff;
+		const sbox = ctx.sbox;
+		let y = sbox[0][a] + sbox[1][b];
+		y = y ^ sbox[2][c];
+		y = y + sbox[3][d];
 
 		return y;
-	}
+	};
 
-	function BlowFish_Encrypt(ctx, left, right) {
+	const BlowFish_Encrypt = (ctx, left, right) => {
 		let Xl = left;
 		let Xr = right;
 		let temp;
-
+		const pbox = ctx.pbox;
 		for (let i = 0; i < N; ++i) {
-			Xl = Xl ^ ctx.pbox[i];
+			Xl = Xl ^ pbox[i];
 			Xr = F(ctx, Xl) ^ Xr;
 
 			temp = Xl;
@@ -176,19 +176,19 @@
 		Xl = Xr;
 		Xr = temp;
 
-		Xr = Xr ^ ctx.pbox[N];
-		Xl = Xl ^ ctx.pbox[N + 1];
+		Xr = Xr ^ pbox[N];
+		Xl = Xl ^ pbox[N + 1];
 
 		return { left: Xl, right: Xr };
-	}
+	};
 
-	function BlowFish_Decrypt(ctx, left, right) {
+	const BlowFish_Decrypt = (ctx, left, right) => {
 		let Xl = left;
 		let Xr = right;
 		let temp;
-
+		const pbox = ctx.pbox;
 		for (let i = N + 1; i > 1; --i) {
-			Xl = Xl ^ ctx.pbox[i];
+			Xl = Xl ^ pbox[i];
 			Xr = F(ctx, Xl) ^ Xr;
 
 			temp = Xl;
@@ -200,11 +200,11 @@
 		Xl = Xr;
 		Xr = temp;
 
-		Xr = Xr ^ ctx.pbox[1];
-		Xl = Xl ^ ctx.pbox[0];
+		Xr = Xr ^ pbox[1];
+		Xl = Xl ^ pbox[0];
 
 		return { left: Xl, right: Xr };
-	}
+	};
 
 	/**
 	 * Initialization ctx's pbox and sbox.
@@ -217,74 +217,62 @@
 	 *
 	 *     BlowFishInit(BLOWFISH_CTX, key, 128/32);
 	 */
-	function BlowFishInit(ctx, key, keysize) {
+	const BlowFishInit = (ctx, key, keysize) => {
 		for (let Row = 0; Row < 4; Row++) {
-			ctx.sbox[Row] = [];
-			for (let Col = 0; Col < 256; Col++) {
-				ctx.sbox[Row][Col] = ORIG_S[Row][Col];
-			}
+			const sbox = [];
+			const origS = ORIG_S[Row];
+			ctx.sbox[Row] = sbox;
+			for (let Col = 0; Col < 256; Col++) sbox[Col] = origS[Col];
 		}
-
+		const pbox = ctx.pbox;
 		let keyIndex = 0;
 		for (let index = 0; index < N + 2; index++) {
-			ctx.pbox[index] = ORIG_P[index] ^ key[keyIndex];
+			pbox[index] = ORIG_P[index] ^ key[keyIndex];
 			keyIndex++;
-			if (keyIndex >= keysize) {
-				keyIndex = 0;
-			}
+			if (keyIndex >= keysize) keyIndex = 0;
 		}
-
 		let Data1 = 0;
 		let Data2 = 0;
-		let res = 0;
 		for (let i = 0; i < N + 2; i += 2) {
-			res = BlowFish_Encrypt(ctx, Data1, Data2);
+			const res = BlowFish_Encrypt(ctx, Data1, Data2);
 			Data1 = res.left;
 			Data2 = res.right;
-			ctx.pbox[i] = Data1;
-			ctx.pbox[i + 1] = Data2;
+			pbox[i] = Data1;
+			pbox[i + 1] = Data2;
 		}
-
 		for (let i = 0; i < 4; i++) {
+			const sbox = ctx.sbox[i];
 			for (let j = 0; j < 256; j += 2) {
-				res = BlowFish_Encrypt(ctx, Data1, Data2);
+				const res = BlowFish_Encrypt(ctx, Data1, Data2);
 				Data1 = res.left;
 				Data2 = res.right;
-				ctx.sbox[i][j] = Data1;
-				ctx.sbox[i][j + 1] = Data2;
+				sbox[j] = Data1;
+				sbox[j + 1] = Data2;
 			}
 		}
-
 		return true;
-	}
+	};
 
 	/**
 	 * Blowfish block cipher algorithm.
 	 */
-	var Blowfish = (C_algo.Blowfish = BlockCipher.extend({
+	const Blowfish = BlockCipher.extend({
 		_doReset: function () {
-			// Skip reset of nRounds has been set before and key did not change
-			if (this._keyPriorReset === this._key) {
-				return;
-			}
-
-			// Shortcuts
-			var key = (this._keyPriorReset = this._key);
-			var keyWords = key.words;
-			var keySize = key.sigBytes / 4;
-
-			//Initialization pbox and sbox
-			BlowFishInit(BLOWFISH_CTX, keyWords, keySize);
+			if (this._keyPriorReset === this._key) return; // Skip reset of nRounds has been set before and key did not change
+			const key = (this._keyPriorReset = this._key); // Shortcuts
+			const keyWords = key.words; // Shortcuts
+			const keySize = key.sigBytes / 4; // Shortcuts
+			BlowFishInit(BLOWFISH_CTX, keyWords, keySize); //Initialization pbox and sbox
 		},
 
 		encryptBlock: function (M, offset) {
-			var res = BlowFish_Encrypt(BLOWFISH_CTX, M[offset], M[offset + 1]);
+			const res = BlowFish_Encrypt(BLOWFISH_CTX, M[offset], M[offset + 1]);
 			M[offset] = res.left;
 			M[offset + 1] = res.right;
 		},
 
 		decryptBlock: function (M, offset) {
-			var res = BlowFish_Decrypt(BLOWFISH_CTX, M[offset], M[offset + 1]);
+			const res = BlowFish_Decrypt(BLOWFISH_CTX, M[offset], M[offset + 1]);
 			M[offset] = res.left;
 			M[offset + 1] = res.right;
 		},
@@ -294,15 +282,16 @@
 		keySize: 128 / 32,
 
 		ivSize: 64 / 32,
-	}));
+	});
+	C_algo.Blowfish = Blowfish;
 
 	/**
 	 * Shortcut functions to the cipher's object interface.
 	 *
 	 * @example
 	 *
-	 *     var ciphertext = CryptoJS.Blowfish.encrypt(message, key, cfg);
-	 *     var plaintext  = CryptoJS.Blowfish.decrypt(ciphertext, key, cfg);
+	 *     const ciphertext = CryptoJS.Blowfish.encrypt(message, key, cfg);
+	 *     const plaintext  = CryptoJS.Blowfish.decrypt(ciphertext, key, cfg);
 	 */
 	C.Blowfish = BlockCipher._createHelper(Blowfish);
 })();

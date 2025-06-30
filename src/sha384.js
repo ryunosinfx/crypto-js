@@ -1,16 +1,16 @@
 (function () {
 	// Shortcuts
-	var C = CryptoJS;
-	var C_x64 = C.x64;
-	var X64Word = C_x64.Word;
-	var X64WordArray = C_x64.WordArray;
-	var C_algo = C.algo;
-	var SHA512 = C_algo.SHA512;
+	const C = CryptoJS;
+	const C_x64 = C.x64;
+	const X64Word = C_x64.Word;
+	const X64WordArray = C_x64.WordArray;
+	const C_algo = C.algo;
+	const SHA512 = C_algo.SHA512;
 
 	/**
 	 * SHA-384 hash algorithm.
 	 */
-	var SHA384 = (C_algo.SHA384 = SHA512.extend({
+	const SHA384 = SHA512.extend({
 		_doReset: function () {
 			this._hash = new X64WordArray.init([
 				new X64Word.init(0xcbbb9d5d, 0xc1059ed8),
@@ -25,14 +25,12 @@
 		},
 
 		_doFinalize: function () {
-			var hash = SHA512._doFinalize.call(this);
-
+			const hash = SHA512._doFinalize.call(this);
 			hash.sigBytes -= 16;
-
 			return hash;
 		},
-	}));
-
+	});
+	C_algo.SHA384 = SHA384;
 	/**
 	 * Shortcut function to the hasher's object interface.
 	 *
@@ -44,8 +42,8 @@
 	 *
 	 * @example
 	 *
-	 *     var hash = CryptoJS.SHA384('message');
-	 *     var hash = CryptoJS.SHA384(wordArray);
+	 *     const hash = CryptoJS.SHA384('message');
+	 *     const hash = CryptoJS.SHA384(wordArray);
 	 */
 	C.SHA384 = SHA512._createHelper(SHA384);
 
@@ -61,7 +59,7 @@
 	 *
 	 * @example
 	 *
-	 *     var hmac = CryptoJS.HmacSHA384(message, key);
+	 *     const hmac = CryptoJS.HmacSHA384(message, key);
 	 */
 	C.HmacSHA384 = SHA512._createHmacHelper(SHA384);
 })();

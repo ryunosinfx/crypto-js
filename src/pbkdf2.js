@@ -1,17 +1,17 @@
 (function () {
 	// Shortcuts
-	var C = CryptoJS;
-	var C_lib = C.lib;
-	var Base = C_lib.Base;
-	var WordArray = C_lib.WordArray;
-	var C_algo = C.algo;
-	var SHA256 = C_algo.SHA256;
-	var HMAC = C_algo.HMAC;
+	const C = CryptoJS;
+	const C_lib = C.lib;
+	const Base = C_lib.Base;
+	const WordArray = C_lib.WordArray;
+	const C_algo = C.algo;
+	const SHA256 = C_algo.SHA256;
+	const HMAC = C_algo.HMAC;
 
 	/**
 	 * Password-Based Key Derivation Function 2 algorithm.
 	 */
-	var PBKDF2 = (C_algo.PBKDF2 = Base.extend({
+	const PBKDF2 = Base.extend({
 		/**
 		 * Configuration options.
 		 *
@@ -32,9 +32,9 @@
 		 *
 		 * @example
 		 *
-		 *     var kdf = CryptoJS.algo.PBKDF2.create();
-		 *     var kdf = CryptoJS.algo.PBKDF2.create({ keySize: 8 });
-		 *     var kdf = CryptoJS.algo.PBKDF2.create({ keySize: 8, iterations: 1000 });
+		 *     const kdf = CryptoJS.algo.PBKDF2.create();
+		 *     const kdf = CryptoJS.algo.PBKDF2.create({ keySize: 8 });
+		 *     const kdf = CryptoJS.algo.PBKDF2.create({ keySize: 8, iterations: 1000 });
 		 */
 		init: function (cfg) {
 			this.cfg = this.cfg.extend(cfg);
@@ -50,57 +50,37 @@
 		 *
 		 * @example
 		 *
-		 *     var key = kdf.compute(password, salt);
+		 *     const key = kdf.compute(password, salt);
 		 */
 		compute: function (password, salt) {
-			// Shortcut
-			var cfg = this.cfg;
-
-			// Init HMAC
-			var hmac = HMAC.create(cfg.hasher, password);
-
-			// Initial values
-			var derivedKey = WordArray.create();
-			var blockIndex = WordArray.create([0x00000001]);
-
-			// Shortcuts
-			var derivedKeyWords = derivedKey.words;
-			var blockIndexWords = blockIndex.words;
-			var keySize = cfg.keySize;
-			var iterations = cfg.iterations;
-
+			const cfg = this.cfg; // Shortcut
+			const hmac = HMAC.create(cfg.hasher, password); // Init HMAC
+			const derivedKey = WordArray.create(); // Initial values
+			const blockIndex = WordArray.create([0x00000001]); // Initial values
+			const derivedKeyWords = derivedKey.words; // Shortcuts
+			const blockIndexWords = blockIndex.words; // Shortcuts
+			const keySize = cfg.keySize; // Shortcuts
+			const iterations = cfg.iterations; // Shortcuts
 			// Generate key
 			while (derivedKeyWords.length < keySize) {
-				var block = hmac.update(salt).finalize(blockIndex);
+				const block = hmac.update(salt).finalize(blockIndex);
 				hmac.reset();
-
-				// Shortcuts
-				var blockWords = block.words;
-				var blockWordsLength = blockWords.length;
-
-				// Iterations
-				var intermediate = block;
-				for (var i = 1; i < iterations; i++) {
+				const blockWords = block.words; // Shortcuts
+				const blockWordsLength = blockWords.length; // Shortcuts
+				let intermediate = block; // Iterations
+				for (let i = 1; i < iterations; i++) {
 					intermediate = hmac.finalize(intermediate);
 					hmac.reset();
-
-					// Shortcut
-					var intermediateWords = intermediate.words;
-
-					// XOR intermediate with block
-					for (var j = 0; j < blockWordsLength; j++) {
-						blockWords[j] ^= intermediateWords[j];
-					}
+					const intermediateWords = intermediate.words; // Shortcut
+					for (let j = 0; j < blockWordsLength; j++) blockWords[j] ^= intermediateWords[j]; // XOR intermediate with block
 				}
-
 				derivedKey.concat(block);
 				blockIndexWords[0]++;
 			}
 			derivedKey.sigBytes = keySize * 4;
-
 			return derivedKey;
 		},
-	}));
+	});
 
 	/**
 	 * Computes the Password-Based Key Derivation Function 2.
@@ -115,11 +95,10 @@
 	 *
 	 * @example
 	 *
-	 *     var key = CryptoJS.PBKDF2(password, salt);
-	 *     var key = CryptoJS.PBKDF2(password, salt, { keySize: 8 });
-	 *     var key = CryptoJS.PBKDF2(password, salt, { keySize: 8, iterations: 1000 });
+	 *     const key = CryptoJS.PBKDF2(password, salt);
+	 *     const key = CryptoJS.PBKDF2(password, salt, { keySize: 8 });
+	 *     const key = CryptoJS.PBKDF2(password, salt, { keySize: 8, iterations: 1000 });
 	 */
-	C.PBKDF2 = function (password, salt, cfg) {
-		return PBKDF2.create(cfg).compute(password, salt);
-	};
+	C.PBKDF2 = (password, salt, cfg) => PBKDF2.create(cfg).compute(password, salt);
+	C_algo.PBKDF2 = PBKDF2;
 })();

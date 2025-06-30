@@ -1,19 +1,19 @@
 (function () {
 	// Shortcuts
-	var C = CryptoJS;
-	var C_lib = C.lib;
-	var Hasher = C_lib.Hasher;
-	var C_x64 = C.x64;
-	var X64Word = C_x64.Word;
-	var X64WordArray = C_x64.WordArray;
-	var C_algo = C.algo;
+	const C = CryptoJS;
+	const C_lib = C.lib;
+	const Hasher = C_lib.Hasher;
+	const C_x64 = C.x64;
+	const X64Word = C_x64.Word;
+	const X64WordArray = C_x64.WordArray;
+	const C_algo = C.algo;
 
 	function X64Word_create() {
 		return X64Word.create.apply(X64Word, arguments);
 	}
 
 	// Constants
-	var K = [
+	const K = [
 		X64Word_create(0x428a2f98, 0xd728ae22),
 		X64Word_create(0x71374491, 0x23ef65cd),
 		X64Word_create(0xb5c0fbcf, 0xec4d3b2f),
@@ -97,17 +97,15 @@
 	];
 
 	// Reusable objects
-	var W = [];
+	const W = [];
 	(function () {
-		for (var i = 0; i < 80; i++) {
-			W[i] = X64Word_create();
-		}
+		for (let i = 0; i < 80; i++) W[i] = X64Word_create();
 	})();
 
 	/**
 	 * SHA-512 hash algorithm.
 	 */
-	var SHA512 = (C_algo.SHA512 = Hasher.extend({
+	const SHA512 = Hasher.extend({
 		_doReset: function () {
 			this._hash = new X64WordArray.init([
 				new X64Word.init(0x6a09e667, 0xf3bcc908),
@@ -123,99 +121,85 @@
 
 		_doProcessBlock: function (M, offset) {
 			// Shortcuts
-			var H = this._hash.words;
+			const H = this._hash.words;
+			const [H0, H1, H2, H3, H4, H5, H6, H7] = H;
 
-			var H0 = H[0];
-			var H1 = H[1];
-			var H2 = H[2];
-			var H3 = H[3];
-			var H4 = H[4];
-			var H5 = H[5];
-			var H6 = H[6];
-			var H7 = H[7];
-
-			var H0h = H0.high;
-			var H0l = H0.low;
-			var H1h = H1.high;
-			var H1l = H1.low;
-			var H2h = H2.high;
-			var H2l = H2.low;
-			var H3h = H3.high;
-			var H3l = H3.low;
-			var H4h = H4.high;
-			var H4l = H4.low;
-			var H5h = H5.high;
-			var H5l = H5.low;
-			var H6h = H6.high;
-			var H6l = H6.low;
-			var H7h = H7.high;
-			var H7l = H7.low;
+			const H0h = H0.high;
+			let H0l = H0.low;
+			const H1h = H1.high;
+			let H1l = H1.low;
+			const H2h = H2.high;
+			let H2l = H2.low;
+			const H3h = H3.high;
+			let H3l = H3.low;
+			const H4h = H4.high;
+			let H4l = H4.low;
+			const H5h = H5.high;
+			let H5l = H5.low;
+			const H6h = H6.high;
+			let H6l = H6.low;
+			const H7h = H7.high;
+			let H7l = H7.low;
 
 			// Working variables
-			var ah = H0h;
-			var al = H0l;
-			var bh = H1h;
-			var bl = H1l;
-			var ch = H2h;
-			var cl = H2l;
-			var dh = H3h;
-			var dl = H3l;
-			var eh = H4h;
-			var el = H4l;
-			var fh = H5h;
-			var fl = H5l;
-			var gh = H6h;
-			var gl = H6l;
-			var hh = H7h;
-			var hl = H7l;
+			let ah = H0h,
+				al = H0l,
+				bh = H1h,
+				bl = H1l,
+				ch = H2h,
+				cl = H2l,
+				dh = H3h,
+				dl = H3l,
+				eh = H4h,
+				el = H4l,
+				fh = H5h,
+				fl = H5l,
+				gh = H6h,
+				gl = H6l,
+				hh = H7h,
+				hl = H7l;
 
 			// Rounds
-			for (var i = 0; i < 80; i++) {
-				var Wil;
-				var Wih;
-
-				// Shortcut
-				var Wi = W[i];
-
+			for (let i = 0; i < 80; i++) {
+				let Wil, Wih;
+				const Wi = W[i]; // Shortcut
 				// Extend message
 				if (i < 16) {
 					Wih = Wi.high = M[offset + i * 2] | 0;
 					Wil = Wi.low = M[offset + i * 2 + 1] | 0;
 				} else {
-					// Gamma0
-					var gamma0x = W[i - 15];
-					var gamma0xh = gamma0x.high;
-					var gamma0xl = gamma0x.low;
-					var gamma0h =
+					const gamma0x = W[i - 15]; // Gamma0
+					const gamma0xh = gamma0x.high;
+					const gamma0xl = gamma0x.low;
+					const gamma0h =
 						((gamma0xh >>> 1) | (gamma0xl << 31)) ^
 						((gamma0xh >>> 8) | (gamma0xl << 24)) ^
 						(gamma0xh >>> 7);
-					var gamma0l =
+					const gamma0l =
 						((gamma0xl >>> 1) | (gamma0xh << 31)) ^
 						((gamma0xl >>> 8) | (gamma0xh << 24)) ^
 						((gamma0xl >>> 7) | (gamma0xh << 25));
 
-					// Gamma1
-					var gamma1x = W[i - 2];
-					var gamma1xh = gamma1x.high;
-					var gamma1xl = gamma1x.low;
-					var gamma1h =
+					const gamma1x = W[i - 2]; // Gamma1
+					const gamma1xh = gamma1x.high;
+					const gamma1xl = gamma1x.low;
+					const gamma1h =
 						((gamma1xh >>> 19) | (gamma1xl << 13)) ^
 						((gamma1xh << 3) | (gamma1xl >>> 29)) ^
 						(gamma1xh >>> 6);
-					var gamma1l =
+					const gamma1l =
 						((gamma1xl >>> 19) | (gamma1xh << 13)) ^
 						((gamma1xl << 3) | (gamma1xh >>> 29)) ^
 						((gamma1xl >>> 6) | (gamma1xh << 26));
 
 					// W[i] = gamma0 + W[i - 7] + gamma1 + W[i - 16]
-					var Wi7 = W[i - 7];
-					var Wi7h = Wi7.high;
-					var Wi7l = Wi7.low;
+					const Wi7 = W[i - 7];
+					const Wi7h = Wi7.high;
+					const Wi7l = Wi7.low;
 
-					var Wi16 = W[i - 16];
-					var Wi16h = Wi16.high;
-					var Wi16l = Wi16.low;
+					const Wi16 = W[i - 16];
+					const Wi16h = Wi16.high;
+					const Wi16l = Wi16.low;
 
 					Wil = gamma0l + Wi7l;
 					Wih = gamma0h + Wi7h + (Wil >>> 0 < gamma0l >>> 0 ? 1 : 0);
@@ -228,33 +212,31 @@
 					Wi.low = Wil;
 				}
 
-				var chh = (eh & fh) ^ (~eh & gh);
-				var chl = (el & fl) ^ (~el & gl);
-				var majh = (ah & bh) ^ (ah & ch) ^ (bh & ch);
-				var majl = (al & bl) ^ (al & cl) ^ (bl & cl);
+				const chh = (eh & fh) ^ (~eh & gh);
+				const chl = (el & fl) ^ (~el & gl);
+				const majh = (ah & bh) ^ (ah & ch) ^ (bh & ch);
+				const majl = (al & bl) ^ (al & cl) ^ (bl & cl);
 
-				var sigma0h = ((ah >>> 28) | (al << 4)) ^ ((ah << 30) | (al >>> 2)) ^ ((ah << 25) | (al >>> 7));
-				var sigma0l = ((al >>> 28) | (ah << 4)) ^ ((al << 30) | (ah >>> 2)) ^ ((al << 25) | (ah >>> 7));
-				var sigma1h = ((eh >>> 14) | (el << 18)) ^ ((eh >>> 18) | (el << 14)) ^ ((eh << 23) | (el >>> 9));
-				var sigma1l = ((el >>> 14) | (eh << 18)) ^ ((el >>> 18) | (eh << 14)) ^ ((el << 23) | (eh >>> 9));
+				const sigma0h = ((ah >>> 28) | (al << 4)) ^ ((ah << 30) | (al >>> 2)) ^ ((ah << 25) | (al >>> 7));
+				const sigma0l = ((al >>> 28) | (ah << 4)) ^ ((al << 30) | (ah >>> 2)) ^ ((al << 25) | (ah >>> 7));
+				const sigma1h = ((eh >>> 14) | (el << 18)) ^ ((eh >>> 18) | (el << 14)) ^ ((eh << 23) | (el >>> 9));
+				const sigma1l = ((el >>> 14) | (eh << 18)) ^ ((el >>> 18) | (eh << 14)) ^ ((el << 23) | (eh >>> 9));
 
-				// t1 = h + sigma1 + ch + K[i] + W[i]
-				var Ki = K[i];
-				var Kih = Ki.high;
-				var Kil = Ki.low;
+				const Ki = K[i]; // t1 = h + sigma1 + ch + K[i] + W[i]
+				const Kih = Ki.high;
+				const Kil = Ki.low;
 
-				var t1l = hl + sigma1l;
-				var t1h = hh + sigma1h + (t1l >>> 0 < hl >>> 0 ? 1 : 0);
-				var t1l = t1l + chl;
-				var t1h = t1h + chh + (t1l >>> 0 < chl >>> 0 ? 1 : 0);
-				var t1l = t1l + Kil;
-				var t1h = t1h + Kih + (t1l >>> 0 < Kil >>> 0 ? 1 : 0);
-				var t1l = t1l + Wil;
-				var t1h = t1h + Wih + (t1l >>> 0 < Wil >>> 0 ? 1 : 0);
+				let t1l = hl + sigma1l;
+				let t1h = hh + sigma1h + (t1l >>> 0 < hl >>> 0 ? 1 : 0);
+				t1l = t1l + chl;
+				t1h = t1h + chh + (t1l >>> 0 < chl >>> 0 ? 1 : 0);
+				t1l = t1l + Kil;
+				t1h = t1h + Kih + (t1l >>> 0 < Kil >>> 0 ? 1 : 0);
+				t1l = t1l + Wil;
+				t1h = t1h + Wih + (t1l >>> 0 < Wil >>> 0 ? 1 : 0);
 
-				// t2 = sigma0 + maj
-				var t2l = sigma0l + majl;
-				var t2h = sigma0h + majh + (t2l >>> 0 < sigma0l >>> 0 ? 1 : 0);
+				const t2l = sigma0l + majl; // t2 = sigma0 + maj
+				const t2h = sigma0h + majh + (t2l >>> 0 < sigma0l >>> 0 ? 1 : 0);
 
 				// Update working variables
 				hh = gh;
@@ -274,9 +256,7 @@
 				al = (t1l + t2l) | 0;
 				ah = (t1h + t2h + (al >>> 0 < t1l >>> 0 ? 1 : 0)) | 0;
 			}
-
-			// Intermediate hash value
-			H0l = H0.low = H0l + al;
+			H0l = H0.low = H0l + al; // Intermediate hash value
 			H0.high = H0h + ah + (H0l >>> 0 < al >>> 0 ? 1 : 0);
 			H1l = H1.low = H1l + bl;
 			H1.high = H1h + bh + (H1l >>> 0 < bl >>> 0 ? 1 : 0);
@@ -295,39 +275,27 @@
 		},
 
 		_doFinalize: function () {
-			// Shortcuts
-			var data = this._data;
-			var dataWords = data.words;
-
-			var nBitsTotal = this._nDataBytes * 8;
-			var nBitsLeft = data.sigBytes * 8;
-
-			// Add padding
-			dataWords[nBitsLeft >>> 5] |= 0x80 << (24 - (nBitsLeft % 32));
+			const data = this._data; // Shortcuts
+			const dataWords = data.words; // Shortcuts
+			const nBitsTotal = this._nDataBytes * 8;
+			const nBitsLeft = data.sigBytes * 8;
+			dataWords[nBitsLeft >>> 5] |= 0x80 << (24 - (nBitsLeft % 32)); // Add padding
 			dataWords[(((nBitsLeft + 128) >>> 10) << 5) + 30] = Math.floor(nBitsTotal / 0x100000000);
 			dataWords[(((nBitsLeft + 128) >>> 10) << 5) + 31] = nBitsTotal;
 			data.sigBytes = dataWords.length * 4;
-
-			// Hash final blocks
-			this._process();
-
-			// Convert hash to 32-bit word array before returning
-			var hash = this._hash.toX32();
-
-			// Return final computed hash
-			return hash;
+			this._process(); // Hash final blocks
+			return this._hash.toX32(); // Convert hash to 32-bit word array before returning// Return final computed hash
 		},
 
 		clone: function () {
-			var clone = Hasher.clone.call(this);
+			const clone = Hasher.clone.call(this);
 			clone._hash = this._hash.clone();
-
 			return clone;
 		},
 
 		blockSize: 1024 / 32,
-	}));
-
+	});
+	C_algo.SHA512 = SHA512;
 	/**
 	 * Shortcut function to the hasher's object interface.
 	 *
@@ -339,8 +307,8 @@
 	 *
 	 * @example
 	 *
-	 *     var hash = CryptoJS.SHA512('message');
-	 *     var hash = CryptoJS.SHA512(wordArray);
+	 *     const hash = CryptoJS.SHA512('message');
+	 *     const hash = CryptoJS.SHA512(wordArray);
 	 */
 	C.SHA512 = Hasher._createHelper(SHA512);
 
@@ -356,7 +324,7 @@
 	 *
 	 * @example
 	 *
-	 *     var hmac = CryptoJS.HmacSHA512(message, key);
+	 *     const hmac = CryptoJS.HmacSHA512(message, key);
 	 */
 	C.HmacSHA512 = Hasher._createHmacHelper(SHA512);
 })();
