@@ -1,8 +1,7 @@
 /**
  * A noop padding strategy.
  */
-class NoPadding {
+export class NoPadding {
 	static pad = () => {};
 	static unpad = () => {};
 }
-CryptoJS.pad.NoPadding = NoPadding;

@@ -1,7 +1,7 @@
 /**
  * ANSI X.923 padding strategy.
  */
-class AnsiX923 {
+export class AnsiX923 {
 	static pad = (data, blockSize) => {
 		const dataSigBytes = data.sigBytes; // Shortcuts
 		const blockSizeBytes = blockSize * 4; // Shortcuts
@@ -17,4 +17,3 @@ class AnsiX923 {
 		data.sigBytes -= nPaddingBytes; // Remove padding
 	};
 }
-CryptoJS.pad.AnsiX923 = AnsiX923;

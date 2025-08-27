@@ -7,7 +7,7 @@ YUI.add(
 			name: 'SHA512',
 
 			profileSinglePartMessage: () => {
-				const singlePartMessage = '';
+				let singlePartMessage = '';
 				for (let i = 0; i < 500; i++) singlePartMessage += '12345678901234567890123456789012345678901234567890';
 				C.algo.SHA512.create().finalize(singlePartMessage) + '';
 			},

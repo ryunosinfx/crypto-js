@@ -1,12 +1,13 @@
+import { WordArray } from './core.js';
 /**
  * ISO 10126 padding strategy.
  */
-class Iso10126 {
+export class Iso10126 {
 	static pad = (data, blockSize) => {
 		const blockSizeBytes = blockSize * 4; // Shortcut
 		const nPaddingBytes = blockSizeBytes - (data.sigBytes % blockSizeBytes); // Count padding bytes
-		data.concat(CryptoJS.lib.WordArray.random(nPaddingBytes - 1)).concat(
-			CryptoJS.lib.WordArray.create([nPaddingBytes << 24], 1) // Pad
+		data.concat(WordArray.random(nPaddingBytes - 1)).concat(
+			new WordArray([nPaddingBytes << 24], 1) // Pad
 		);
 	};
 
@@ -15,4 +16,3 @@ class Iso10126 {
 		data.sigBytes -= nPaddingBytes; // Remove padding
 	};
 }
-CryptoJS.pad.Iso10126 = Iso10126;

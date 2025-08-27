@@ -3,667 +3,757 @@
 /**
  * CryptoJS core components.
  */
-var CryptoJS =
-	CryptoJS ||
-	(function (Math, undefined) {
-		let crypto =
-			// Native crypto from window (Browser)
-			typeof window !== 'undefined' && window.crypto
-				? window.crypto
-				: typeof self !== 'undefined' && self.crypto // Native crypto in web worker (Browser)
-				? self.crypto
-				: typeof globalThis !== 'undefined' && globalThis.crypto // Native crypto from worker
-				? globalThis.crypto
-				: typeof window !== 'undefined' && window.msCrypto // Native (experimental IE 11) crypto from window (Browser)
-				? window.msCrypto
-				: typeof global !== 'undefined' && global.crypto // Native crypto from global (NodeJS)
-				? global.crypto
-				: undefined;
 
-		// Native crypto import via require (NodeJS)
-		if (!crypto && typeof require === 'function') {
+let crypto =
+	// Native crypto from window (Browser)
+	typeof window !== 'undefined' && window.crypto
+		? window.crypto
+		: typeof self !== 'undefined' && self.crypto // Native crypto in web worker (Browser)
+		? self.crypto
+		: typeof globalThis !== 'undefined' && globalThis.crypto // Native crypto from worker
+		? globalThis.crypto
+		: typeof window !== 'undefined' && window.msCrypto // Native (experimental IE 11) crypto from window (Browser)
+		? window.msCrypto
+		: typeof global !== 'undefined' && global.crypto // Native crypto from global (NodeJS)
+		? global.crypto
+		: undefined;
+
+// Native crypto import via require (NodeJS)
+if (!crypto && typeof require === 'function') {
+	try {
+		crypto = require('crypto');
+	} catch (err) {}
+}
+
+/*
+ * Cryptographically secure pseudorandom number generator
+ *
+ * As Math.random() is cryptographically not safe to use
+ */
+const cryptoSecureRandomInt = () => {
+	if (crypto) {
+		// Use getRandomValues method (Browser)
+		if (typeof crypto.getRandomValues === 'function') {
 			try {
-				crypto = require('crypto');
+				return crypto.getRandomValues(new Uint32Array(1))[0];
 			} catch (err) {}
 		}
 
-		/*
-		 * Cryptographically secure pseudorandom number generator
-		 *
-		 * As Math.random() is cryptographically not safe to use
-		 */
-		const cryptoSecureRandomInt = function () {
-			if (crypto) {
-				// Use getRandomValues method (Browser)
-				if (typeof crypto.getRandomValues === 'function') {
-					try {
-						return crypto.getRandomValues(new Uint32Array(1))[0];
-					} catch (err) {}
-				}
+		// Use randomBytes method (NodeJS)
+		if (typeof crypto.randomBytes === 'function') {
+			try {
+				return crypto.randomBytes(4).readInt32LE();
+			} catch (err) {}
+		}
+	}
 
-				// Use randomBytes method (NodeJS)
-				if (typeof crypto.randomBytes === 'function') {
-					try {
-						return crypto.randomBytes(4).readInt32LE();
-					} catch (err) {}
-				}
-			}
+	throw new Error('Native crypto module could not be used to get secure random number.');
+};
 
-			throw new Error('Native crypto module could not be used to get secure random number.');
-		};
+/** Local polyfill of Object.create*/
+// const create =
+// 	Object.create ||
+// 	(function () {
+// 		function F() {}
+// 		return obj => {
+// 			F.prototype = obj;
+// 			const subtype = new F();
+// 			F.prototype = null;
+// 			return subtype;
+// 		};
+// 	})();
 
-		/** Local polyfill of Object.create*/
-		const create =
-			Object.create ||
-			(function () {
-				function F() {}
-				return obj => {
-					F.prototype = obj;
-					const subtype = new F();
-					F.prototype = null;
-					return subtype;
-				};
-			})();
+/**
+ * CryptoJS namespace.
+ */
+const C = { lib: {}, algo: {}, enc: {}, x64: {}, pad: {}, mode: {} };
 
-		/**
-		 * CryptoJS namespace.
-		 */
-		const C = { lib: {}, algo: {}, enc: {}, x64: {}, pad: {}, mode: {} };
+/**
+ * Library namespace.
+ */
+const C_lib = C.lib;
 
-		/**
-		 * Library namespace.
-		 */
-		const C_lib = C.lib;
-
-		/**
-		 * Base object for prototypal inheritance.
-		 */
-		const Base = (function () {
-			return {
-				/**
-				 * Creates a new object that inherits from this object.
-				 *
-				 * @param {Object} overrides Properties to copy into the new object.
-				 *
-				 * @return {Object} The new object.
-				 *
-				 * @static
-				 *
-				 * @example
-				 *
-				 *     const MyType = CryptoJS.lib.Base.extend({
-				 *         field: 'value',
-				 *
-				 *         method: function () {
-				 *         }
-				 *     });
-				 */
-				extend: function (overrides) {
-					const subtype = create(this); // Spawn
-					if (overrides) subtype.mixIn(overrides); // Augment
-					// Create default initializer
-					if (!subtype.hasOwnProperty('init') || this.init === subtype.init) {
-						subtype.init = function () {
-							subtype.$super.init.apply(this, arguments);
-						};
-					}
-					subtype.init.prototype = subtype; // Initializer's prototype is the subtype object
-					subtype.$super = this; // Reference supertype
-					return subtype;
-				},
-
-				/**
-				 * Extends this object and runs the init method.
-				 * Arguments to create() will be passed to init().
-				 *
-				 * @return {Object} The new object.
-				 *
-				 * @static
-				 *
-				 * @example
-				 *
-				 *     const instance = MyType.create();
-				 */
-				create: function () {
-					const instance = this.extend();
-					instance.init.apply(instance, arguments);
-					return instance;
-				},
-
-				/**
-				 * Initializes a newly created object.
-				 * Override this method to add some logic when your objects are created.
-				 *
-				 * @example
-				 *
-				 *     const MyType = CryptoJS.lib.Base.extend({
-				 *         init: function () {
-				 *             // ...
-				 *         }
-				 *     });
-				 */
-				init: function () {},
-
-				/**
-				 * Copies properties into this object.
-				 *
-				 * @param {Object} properties The properties to mix in.
-				 *
-				 * @example
-				 *
-				 *     MyType.mixIn({
-				 *         field: 'value'
-				 *     });
-				 */
-				mixIn: function (properties) {
-					for (const propertyName in properties)
-						if (properties.hasOwnProperty(propertyName)) this[propertyName] = properties[propertyName];
-					if (properties.hasOwnProperty('toString')) this.toString = properties.toString; // IE won't copy toString using the loop above
-				},
-
-				/**
-				 * Creates a copy of this object.
-				 *
-				 * @return {Object} The clone.
-				 *
-				 * @example
-				 *
-				 *     const clone = instance.clone();
-				 */
-				clone: function () {
-					return this.init.prototype.extend(this);
-				},
+/**
+ * Base object for prototypal inheritance.
+ */
+export class Base {
+	/**
+	 * Creates a new object that inherits from this object.
+	 *
+	 * @param {Object} overrides Properties to copy into the new object.
+	 *
+	 * @return {Object} The new object.
+	 *
+	 * @static
+	 *
+	 * @example
+	 *
+	 *     const MyType = CryptoJS.lib.Base.extend({
+	 *         field: 'value',
+	 *
+	 *         method: function () {
+	 *         }
+	 *     });
+	 */
+	extend(overrides) {
+		const subtype = new Base(); //(this); // Spawn
+		if (overrides) Base.mixIn(subtype, overrides); // Augment
+		// Create default initializer
+		if (!subtype.hasOwnProperty('init') || this.init === subtype.init) {
+			subtype.init = function () {
+				subtype.$super.init.apply(this, arguments);
 			};
-		})();
-		C_lib.Base = Base; // Export Base
-		/**
-		 * An array of 32-bit words.
-		 *
-		 * @property {Array} words The array of 32-bit words.
-		 * @property {number} sigBytes The number of significant bytes in this word array.
-		 */
-		const WordArray = Base.extend({
-			/**
-			 * Initializes a newly created word array.
-			 *
-			 * @param {Array} words (Optional) An array of 32-bit words.
-			 * @param {number} sigBytes (Optional) The number of significant bytes in the words.
-			 *
-			 * @example
-			 *
-			 *     const wordArray = CryptoJS.lib.WordArray.create();
-			 *     const wordArray = CryptoJS.lib.WordArray.create([0x00010203, 0x04050607]);
-			 *     const wordArray = CryptoJS.lib.WordArray.create([0x00010203, 0x04050607], 6);
-			 */
-			init: function (words, sigBytes) {
-				const wordsInit = (this.words = words || []);
-				this.sigBytes = sigBytes != undefined ? sigBytes : wordsInit.length * 4;
-			},
+		}
+		subtype.init.prototype = subtype; // Initializer's prototype is the subtype object
+		subtype.$super = this; // Reference supertype
+		return subtype;
+	}
 
-			/**
-			 * Converts this word array to a string.
-			 *
-			 * @param {Encoder} encoder (Optional) The encoding strategy to use. Default: CryptoJS.enc.Hex
-			 *
-			 * @return {string} The stringified word array.
-			 *
-			 * @example
-			 *
-			 *     const string = wordArray + '';
-			 *     const string = wordArray.toString();
-			 *     const string = wordArray.toString(CryptoJS.enc.Utf8);
-			 */
-			toString: function (encoder) {
-				return (encoder || Hex).stringify(this);
-			},
+	/**
+	 * Extends this object and runs the init method.
+	 * Arguments to new() will be passed to init().
+	 *
+	 * @return {Object} The new object.
+	 *
+	 * @static
+	 *
+	 * @example
+	 *
+	 *     const instance = new MyType();
+	 */
+	// static c reate() {
+	// 	const instance = new Base();
+	// 	instance.init.apply(instance, arguments);
+	// 	return instance;
+	// }
 
-			/**
-			 * Concatenates a word array to this word array.
-			 *
-			 * @param {WordArray} wordArray The word array to append.
-			 *
-			 * @return {WordArray} This word array.
-			 *
-			 * @example
-			 *
-			 *     wordArray1.concat(wordArray2);
-			 */
-			concat: function (wordArray) {
-				// Shortcuts
-				const thisWords = this.words;
-				const thatWords = wordArray.words;
-				const thisSigBytes = this.sigBytes;
-				const thatSigBytes = wordArray.sigBytes;
-				this.clamp(); // Clamp excess bits
-				// Concat
-				if (thisSigBytes % 4) {
-					// Copy one byte at a time
-					for (let i = 0; i < thatSigBytes; i++) {
-						const thatByte = (thatWords[i >>> 2] >>> (24 - (i % 4) * 8)) & 0xff;
-						thisWords[(thisSigBytes + i) >>> 2] |= thatByte << (24 - ((thisSigBytes + i) % 4) * 8);
-					}
-				} else
-					for (let j = 0; j < thatSigBytes; j += 4) thisWords[(thisSigBytes + j) >>> 2] = thatWords[j >>> 2]; // Copy one word at a time
-				this.sigBytes += thatSigBytes;
-				return this; // Chainable
-			},
+	/**
+	 * Initializes a newly created object.
+	 * Override this method to add some logic when your objects are created.
+	 *
+	 * @example
+	 *
+	 *     const MyType = CryptoJS.lib.Base.extend({
+	 *         init: function () {
+	 *             // ...
+	 *         }
+	 *     });
+	 */
+	constructor() {
+		this.cfg = {};
+	}
 
-			/**
-			 * Removes insignificant bits.
-			 *
-			 * @example
-			 *
-			 *     wordArray.clamp();
-			 */
-			clamp: function () {
-				// Shortcuts
-				const words = this.words;
-				const sigBytes = this.sigBytes;
+	/**
+	 * Copies properties into this object.
+	 *
+	 * @param {Object} properties The properties to mix in.
+	 *
+	 * @example
+	 *
+	 *     MyType.mixIn({
+	 *         field: 'value'
+	 *     });
+	 */
+	static mixIn = (base, properties) => {
+		if (!properties) return base;
+		for (const name in properties) base[name] = properties[name];
+		if (properties.hasOwnProperty('toString')) base.toString = properties.toString; // IE won't copy toString using the loop above
+		// console.log('Base.mixIn:', base);
+		return base;
+	};
 
-				// Clamp
-				words[sigBytes >>> 2] &= 0xffffffff << (32 - (sigBytes % 4) * 8);
-				words.length = Math.ceil(sigBytes / 4);
-			},
+	/**
+	 * Creates a copy of this object.
+	 *
+	 * @return {Object} The clone.
+	 *
+	 * @example
+	 *
+	 *     const clone = instance.clone();
+	 */
+	clone() {
+		// return this.init.prototype.extend(this);
+		const newOne = new this.constructor();
+		for (const key in this) newOne[key] = structuredClone(this[key]);
+		return newOne;
+	}
+}
+const base = new Base();
+C_lib.Base = base; // Export Base
 
-			/**
-			 * Creates a copy of this word array.
-			 *
-			 * @return {WordArray} The clone.
-			 *
-			 * @example
-			 *
-			 *     const clone = wordArray.clone();
-			 */
-			clone: function () {
-				const clone = Base.clone.call(this);
-				clone.words = this.words.slice(0);
-				return clone;
-			},
+/**
+ * An array of 32-bit words.
+ *
+ * @property {Array} words The array of 32-bit words.
+ * @property {number} sigBytes The number of significant bytes in this word array.
+ */
+export class WordArray extends Base {
+	/**
+	 * Initializes a newly created word array.
+	 *
+	 * @param {Array} words (Optional) An array of 32-bit words.
+	 * @param {number} sigBytes (Optional) The number of significant bytes in the words.
+	 *
+	 * @example
+	 *
+	 *     const wordArray = new CryptoJS.lib.WordArray();
+	 *     const wordArray = new CryptoJS.lib.WordArray([0x00010203, 0x04050607]);
+	 *     const wordArray = new CryptoJS.lib.WordArray([0x00010203, 0x04050607], 6);
+	 */
+	constructor(words = [], sigBytes) {
+		super();
+		this.now = Date.now() + Math.ceil(Math.random() * 1000);
+		// Check if typed arrays are supported
+		if (typeof ArrayBuffer === 'function') {
+			// Augment WordArray.init to handle typed arrays
+			let typedArray = words;
+			if (typedArray instanceof ArrayBuffer) typedArray = new Uint8Array(typedArray); // Convert buffers to uint8
 
-			/**
-			 * Creates a word array filled with random bytes.
-			 *
-			 * @param {number} nBytes The number of random bytes to generate.
-			 *
-			 * @return {WordArray} The random word array.
-			 *
-			 * @static
-			 *
-			 * @example
-			 *
-			 *     const wordArray = CryptoJS.lib.WordArray.random(16);
-			 */
-			random: function (nBytes) {
-				const words = [];
-				for (let i = 0; i < nBytes; i += 4) words.push(cryptoSecureRandomInt());
-				return new WordArray.init(words, nBytes);
-			},
-		});
-		C_lib.WordArray = WordArray; // Export WordArray
-		/////////////////////////////////////////////////////////////////////////////////////////
-		/**
-		 * Hex encoding strategy.
-		 */
-		const Hex = {
-			/**
-			 * Converts a word array to a hex string.
-			 *
-			 * @param {WordArray} wordArray The word array.
-			 *
-			 * @return {string} The hex string.
-			 *
-			 * @static
-			 *
-			 * @example
-			 *
-			 *     const hexString = CryptoJS.enc.Hex.stringify(wordArray);
-			 */
-			stringify: function (wordArray) {
-				const words = wordArray.words; // Shortcuts
-				const sigBytes = wordArray.sigBytes; // Shortcuts
-				const hexChars = []; // Convert
-				for (let i = 0; i < sigBytes; i++) {
-					const bite = (words[i >>> 2] >>> (24 - (i % 4) * 8)) & 0xff;
-					hexChars.push((bite >>> 4).toString(16));
-					hexChars.push((bite & 0x0f).toString(16));
-				}
-				return hexChars.join('');
-			},
+			// Convert other array views to uint8
+			if (
+				typedArray instanceof Int8Array ||
+				(typeof Uint8ClampedArray !== 'undefined' && typedArray instanceof Uint8ClampedArray) ||
+				typedArray instanceof Int16Array ||
+				typedArray instanceof Uint16Array ||
+				typedArray instanceof Int32Array ||
+				typedArray instanceof Uint32Array ||
+				typedArray instanceof Float32Array ||
+				typedArray instanceof Float64Array
+			)
+				typedArray = new Uint8Array(typedArray.buffer, typedArray.byteOffset, typedArray.byteLength);
+			// Handle Uint8Array
+			if (typedArray instanceof Uint8Array) {
+				const typedArrayByteLength = typedArray.byteLength; // Shortcut
+				const wordsNew = []; // Extract bytes
+				for (let i = 0; i < typedArrayByteLength; i++) wordsNew[i >>> 2] |= typedArray[i] << (24 - (i % 4) * 8);
+				words = wordsNew;
+				sigBytes = typedArrayByteLength;
+			}
+		}
+		this.words = words;
+		const wordsInit = this.words;
+		// console.log('WordArray constructor wordsInit.length/sigBytes:' + wordsInit.length, sigBytes);
+		this.sigBytes = sigBytes !== undefined ? sigBytes : wordsInit.length * 4;
+		// console.log('constructor this.sigBytes/this.words:', this.now, this.sigBytes, this.words);
+	}
 
-			/**
-			 * Converts a hex string to a word array.
-			 *
-			 * @param {string} hexStr The hex string.
-			 *
-			 * @return {WordArray} The word array.
-			 *
-			 * @static
-			 *
-			 * @example
-			 *
-			 *     const wordArray = CryptoJS.enc.Hex.parse(hexString);
-			 */
-			parse: function (hexStr) {
-				const hexStrLength = hexStr.length; // Shortcut
-				const words = []; // Convert
-				for (let i = 0; i < hexStrLength; i += 2)
-					words[i >>> 3] |= parseInt(hexStr.substr(i, 2), 16) << (24 - (i % 8) * 4);
-				return new WordArray.init(words, hexStrLength / 2);
-			},
-		};
+	/**
+	 * Converts this word array to a string.
+	 *
+	 * @param {Encoder} encoder (Optional) The encoding strategy to use. Default: CryptoJS.enc.Hex
+	 *
+	 * @return {string} The stringified word array.
+	 *
+	 * @example
+	 *
+	 *     const string = wordArray + '';
+	 *     const string = wordArray.toString();
+	 *     const string = wordArray.toString(CryptoJS.enc.Utf8);
+	 */
+	toString(encoder) {
+		// console.log('WordArray toString encoder:' + encoder, this.now, this.words.length, this.sigBytes);
+		return (encoder || Hex).stringify(this);
+	}
 
-		/**
-		 * Latin1 encoding strategy.
-		 */
-		const Latin1 = {
-			/**
-			 * Converts a word array to a Latin1 string.
-			 *
-			 * @param {WordArray} wordArray The word array.
-			 *
-			 * @return {string} The Latin1 string.
-			 *
-			 * @static
-			 *
-			 * @example
-			 *
-			 *     const latin1String = CryptoJS.enc.Latin1.stringify(wordArray);
-			 */
-			stringify: function (wordArray) {
-				const words = wordArray.words; // Shortcuts
-				const sigBytes = wordArray.sigBytes; // Shortcuts
-				const latin1Chars = []; // Convert
-				for (let i = 0; i < sigBytes; i++) {
-					const bite = (words[i >>> 2] >>> (24 - (i % 4) * 8)) & 0xff;
-					latin1Chars.push(String.fromCharCode(bite));
-				}
-				return latin1Chars.join('');
-			},
+	/**
+	 * Concatenates a word array to this word array.
+	 *
+	 * @param {WordArray} wordArray The word array to append.
+	 *
+	 * @return {WordArray} This word array.
+	 *
+	 * @example
+	 *
+	 *     wordArray1.concat(wordArray2);
+	 */
+	concat(wordArray) {
+		// Shortcuts
+		const thisWords = this.words;
+		const thatWordsOrigin = wordArray.words;
+		const thatWords = [];
+		for (const word of thatWordsOrigin) {
+			if (Array.isArray(word)) for (const char of word) thatWords.push(char);
+			else thatWords.push(word);
+		}
+		const thisSigBytes = this.sigBytes;
+		const thatSigBytes = wordArray.sigBytes;
+		// console.log('concat A clamp thatSigBytes/thatWords:', wordArray.now, thatSigBytes, thatWords);
+		// console.log('concat B clamp thisSigBytes/words:', this.now, thisSigBytes, this.words);
+		// console.log('concat A1 clamp thatSigBytes/thatWords:', wordArray.now, thatSigBytes, thatWords);
+		// console.log(
+		// 	'concat B1 clamp thisSigBytes/words:',
+		// 	this.now,
+		// 	thisSigBytes === thatSigBytes,
+		// 	this.words === thatWords
+		// );
 
-			/**
-			 * Converts a Latin1 string to a word array.
-			 *
-			 * @param {string} latin1Str The Latin1 string.
-			 *
-			 * @return {WordArray} The word array.
-			 *
-			 * @static
-			 *
-			 * @example
-			 *
-			 *     const wordArray = CryptoJS.enc.Latin1.parse(latin1String);
-			 */
-			parse: function (latin1Str) {
-				const latin1StrLength = latin1Str.length; // Shortcut
-				const words = []; // Convert
-				for (let i = 0; i < latin1StrLength; i++)
-					words[i >>> 2] |= (latin1Str.charCodeAt(i) & 0xff) << (24 - (i % 4) * 8);
-				return new WordArray.init(words, latin1StrLength);
-			},
-		};
+		this.clamp(); // Clamp excess bits
+		// Concat
+		if (thisSigBytes % 4)
+			// Copy one byte at a time
+			for (let i = 0; i < thatSigBytes; i++) {
+				const thatByte = (thatWords[i >>> 2] >>> (24 - (i % 4) * 8)) & 0xff;
+				thisWords[(thisSigBytes + i) >>> 2] |= thatByte << (24 - ((thisSigBytes + i) % 4) * 8);
+			}
+		else for (let j = 0; j < thatSigBytes; j += 4) thisWords[(thisSigBytes + j) >>> 2] = thatWords[j >>> 2]; // Copy one word at a time
+		this.sigBytes += thatSigBytes;
+		// console.log('concat C clamp this.sigBytes/words:', this.now, this.sigBytes, this.words);
+		return this; // Chainable
+	}
 
-		/**
-		 * UTF-8 encoding strategy.
-		 */
-		const Utf8 = {
-			/**
-			 * Converts a word array to a UTF-8 string.
-			 *
-			 * @param {WordArray} wordArray The word array.
-			 *
-			 * @return {string} The UTF-8 string.
-			 *
-			 * @static
-			 *
-			 * @example
-			 *
-			 *     const utf8String = CryptoJS.enc.Utf8.stringify(wordArray);
-			 */
-			stringify: function (wordArray) {
-				try {
-					return decodeURIComponent(escape(Latin1.stringify(wordArray)));
-				} catch (e) {
-					throw new Error('Malformed UTF-8 data');
-				}
-			},
+	/**
+	 * Removes insignificant bits.
+	 *
+	 * @example
+	 *
+	 *     wordArray.clamp();
+	 */
+	clamp() {
+		// Shortcuts
+		const words = this.words;
+		const sigBytes = this.sigBytes;
+		// console.log('core AA clamp sigBytes/words:', this.now, sigBytes, this.words);
 
-			/**
-			 * Converts a UTF-8 string to a word array.
-			 *
-			 * @param {string} utf8Str The UTF-8 string.
-			 *
-			 * @return {WordArray} The word array.
-			 *
-			 * @static
-			 *
-			 * @example
-			 *
-			 *     const wordArray = CryptoJS.enc.Utf8.parse(utf8String);
-			 */
-			parse: function (utf8Str) {
-				return Latin1.parse(unescape(encodeURIComponent(utf8Str)));
-			},
-		};
+		// Clamp
+		words[sigBytes >>> 2] &= 0xffffffff << (32 - (sigBytes % 4) * 8);
+		// console.log('core AB clamp sigBytes/words:', this.now, sigBytes, this.words);
+		try {
+			words.length = Math.ceil(sigBytes / 4);
+		} catch (e) {
+			console.error(e, sigBytes, words);
+			throw e;
+		}
+	}
 
-		/**
-		 * Encoder namespace.
-		 */
-		const C_enc = { Utf8, Latin1, Hex }; // Create C_enc namespace
-		C.enc = C_enc; // Export C_enc
-		/**
-		 * Abstract buffered block algorithm template.
-		 *
-		 * The property blockSize must be implemented in a concrete subtype.
-		 *
-		 * @property {number} _minBufferSize The number of blocks that should be kept unprocessed in the buffer. Default: 0
-		 */
-		const BufferedBlockAlgorithm = Base.extend({
-			/**
-			 * Resets this block algorithm's data buffer to its initial state.
-			 *
-			 * @example
-			 *
-			 *     bufferedBlockAlgorithm.reset();
-			 */
-			reset: function () {
-				this._data = new WordArray.init(); // Initial values
-				this._nDataBytes = 0;
-			},
+	/**
+	 * Creates a copy of this word array.
+	 *
+	 * @return {WordArray} The clone.
+	 *
+	 * @example
+	 *
+	 *     const clone = wordArray.clone();
+	 */
+	clone() {
+		const clonedOne = super.clone();
+		clonedOne.words = this.words.slice(0);
+		return clonedOne;
+	}
 
-			/**
-			 * Adds new data to this block algorithm's buffer.
-			 *
-			 * @param {WordArray|string} data The data to append. Strings are converted to a WordArray using UTF-8.
-			 *
-			 * @example
-			 *
-			 *     bufferedBlockAlgorithm._append('data');
-			 *     bufferedBlockAlgorithm._append(wordArray);
-			 */
-			_append: function (data) {
-				if (typeof data == 'string') data = Utf8.parse(data); // Convert string to WordArray, else assume WordArray already
-				this._data.concat(data); // Append
-				this._nDataBytes += data.sigBytes;
-			},
+	/**
+	 * Creates a word array filled with random bytes.
+	 *
+	 * @param {number} nBytes The number of random bytes to generate.
+	 *
+	 * @return {WordArray} The random word array.
+	 *
+	 * @static
+	 *
+	 * @example
+	 *
+	 *     const wordArray = CryptoJS.lib.WordArray.random(16);
+	 */
+	static random(nBytes) {
+		const words = [];
+		for (let i = 0; i < nBytes; i += 4) words.push(cryptoSecureRandomInt());
+		// console.log('random nBytes:', nBytes);
+		return new WordArray(words, nBytes);
+	}
+}
+C_lib.WordArray = WordArray; // Export WordArray
+/////////////////////////////////////////////////////////////////////////////////////////
+/**
+ * Hex encoding strategy.
+ */
+export class Hex {
+	/**
+	 * Converts a word array to a hex string.
+	 *
+	 * @param {WordArray} wordArray The word array.
+	 *
+	 * @return {string} The hex string.
+	 *
+	 * @static
+	 *
+	 * @example
+	 *
+	 *     const hexString = CryptoJS.enc.Hex.stringify(wordArray);
+	 */
+	static stringify = wordArray => {
+		const words = wordArray.words; // Shortcuts
+		const sigBytes = wordArray.sigBytes; // Shortcuts
+		const hexChars = []; // Convert
+		for (let i = 0; i < sigBytes; i++) {
+			const bite = (words[i >>> 2] >>> (24 - (i % 4) * 8)) & 0xff;
+			hexChars.push((bite >>> 4).toString(16));
+			hexChars.push((bite & 0x0f).toString(16));
+		}
+		return hexChars.join('');
+	};
 
-			/**
-			 * Processes available data blocks.
-			 *
-			 * This method invokes _doProcessBlock(offset), which must be implemented by a concrete subtype.
-			 *
-			 * @param {boolean} doFlush Whether all blocks and partial blocks should be processed.
-			 *
-			 * @return {WordArray} The processed data.
-			 *
-			 * @example
-			 *
-			 *     const processedData = bufferedBlockAlgorithm._process();
-			 *     const processedData = bufferedBlockAlgorithm._process(!!'flush');
-			 */
-			_process: function (doFlush) {
-				let processedWords;
+	/**
+	 * Converts a hex string to a word array.
+	 *
+	 * @param {string} hexStr The hex string.
+	 *
+	 * @return {WordArray} The word array.
+	 *
+	 * @static
+	 *
+	 * @example
+	 *
+	 *     const wordArray = CryptoJS.enc.Hex.parse(hexString);
+	 */
+	static parse = hexStr => {
+		const hexStrLength = hexStr.length; // Shortcut
+		const words = []; // Convert
+		for (let i = 0; i < hexStrLength; i += 2)
+			words[i >>> 3] |= parseInt(hexStr.substr(i, 2), 16) << (24 - (i % 8) * 4);
+		// console.log('parse hexStrLength:', hexStrLength);
+		return new WordArray(words, hexStrLength / 2);
+	};
+}
 
-				// Shortcuts
-				const data = this._data;
-				const dataWords = data.words;
-				const dataSigBytes = data.sigBytes;
-				const blockSize = this.blockSize;
-				const blockSizeBytes = blockSize * 4;
+/**
+ * Latin1 encoding strategy.
+ */
+export class Latin1 {
+	/**
+	 * Converts a word array to a Latin1 string.
+	 *
+	 * @param {WordArray} wordArray The word array.
+	 *
+	 * @return {string} The Latin1 string.
+	 *
+	 * @static
+	 *
+	 * @example
+	 *
+	 *     const latin1String = CryptoJS.enc.Latin1.stringify(wordArray);
+	 */
+	static stringify = wordArray => {
+		const words = wordArray.words; // Shortcuts
+		const sigBytes = wordArray.sigBytes; // Shortcuts
+		const latin1Chars = []; // Convert
+		for (let i = 0; i < sigBytes; i++) {
+			const bite = (words[i >>> 2] >>> (24 - (i % 4) * 8)) & 0xff;
+			latin1Chars.push(String.fromCharCode(bite));
+		}
+		return latin1Chars.join('');
+	};
 
-				// Count blocks ready
-				const nBlocksReadyPre = dataSigBytes / blockSizeBytes;
-				const nBlocksReady = doFlush // Round up to include partial blocks
-					? Math.ceil(nBlocksReadyPre)
-					: // Round down to include only full blocks,
-					  // less the number of blocks that must remain in the buffer
-					  Math.max((nBlocksReadyPre | 0) - this._minBufferSize, 0);
-				const nWordsReady = nBlocksReady * blockSize; // Count words ready
-				const nBytesReady = Math.min(nWordsReady * 4, dataSigBytes); // Count bytes ready
-				// Process blocks
-				if (nWordsReady) {
-					for (let offset = 0; offset < nWordsReady; offset += blockSize)
-						this._doProcessBlock(dataWords, offset); // Perform concrete-algorithm logic
-					// Remove processed words
-					processedWords = dataWords.splice(0, nWordsReady);
-					data.sigBytes -= nBytesReady;
-				}
-				return new WordArray.init(processedWords, nBytesReady); // Return processed words
-			},
+	/**
+	 * Converts a Latin1 string to a word array.
+	 *
+	 * @param {string} latin1Str The Latin1 string.
+	 *
+	 * @return {WordArray} The word array.
+	 *
+	 * @static
+	 *
+	 * @example
+	 *
+	 *     const wordArray = CryptoJS.enc.Latin1.parse(latin1String);
+	 */
+	static parse = latin1Str => {
+		const latin1StrLength = latin1Str.length; // Shortcut
+		const words = []; // Convert
+		for (let i = 0; i < latin1StrLength; i++)
+			words[i >>> 2] |= (latin1Str.charCodeAt(i) & 0xff) << (24 - (i % 4) * 8);
+		// console.log('parse latin1StrLength:', latin1StrLength);
+		return new WordArray(words, latin1StrLength);
+	};
+}
 
-			/**
-			 * Creates a copy of this object.
-			 *
-			 * @return {Object} The clone.
-			 *
-			 * @example
-			 *
-			 *     const clone = bufferedBlockAlgorithm.clone();
-			 */
-			clone: function () {
-				const clone = Base.clone.call(this);
-				clone._data = this._data.clone();
-				return clone;
-			},
+/**
+ * UTF-8 encoding strategy.
+ */
+export class Utf8 {
+	/**
+	 * Converts a word array to a UTF-8 string.
+	 *
+	 * @param {WordArray} wordArray The word array.
+	 *
+	 * @return {string} The UTF-8 string.
+	 *
+	 * @static
+	 *
+	 * @example
+	 *
+	 *     const utf8String = CryptoJS.enc.Utf8.stringify(wordArray);
+	 */
+	static stringify = wordArray => {
+		try {
+			return decodeURIComponent(escape(Latin1.stringify(wordArray)));
+		} catch (e) {
+			throw new Error('Malformed UTF-8 data');
+		}
+	};
 
-			_minBufferSize: 0,
-		});
-		C_lib.BufferedBlockAlgorithm = BufferedBlockAlgorithm; // Export BufferedBlockAlgorithm
+	/**
+	 * Converts a UTF-8 string to a word array.
+	 *
+	 * @param {string} utf8Str The UTF-8 string.
+	 *
+	 * @return {WordArray} The word array.
+	 *
+	 * @static
+	 *
+	 * @example
+	 *
+	 *     const wordArray = CryptoJS.enc.Utf8.parse(utf8String);
+	 */
+	static parse = utf8Str => {
+		return Latin1.parse(unescape(encodeURIComponent(utf8Str)));
+	};
+}
 
-		/**
-		 * Abstract hasher template.
-		 *
-		 * @property {number} blockSize The number of 32-bit words this hasher operates on. Default: 16 (512 bits)
-		 */
-		const Hasher = BufferedBlockAlgorithm.extend({
-			/**
-			 * Configuration options.
-			 */
-			cfg: Base.extend(),
+/**
+ * Encoder namespace.
+ */
+const C_enc = { Utf8, Latin1, Hex }; // Create C_enc namespace
+C.enc = C_enc; // Export C_enc
+/**
+ * Abstract buffered block algorithm template.
+ *
+ * The property blockSize must be implemented in a concrete subtype.
+ *
+ * @property {number} _minBufferSize The number of blocks that should be kept unprocessed in the buffer. Default: 0
+ */
+export class BufferedBlockAlgorithm extends Base {
+	constructor(cfg) {
+		super();
+		this.blockSize = 16; // Default block size in words (512 bits)
+		this.cfg = Base.mixIn(this.cfg, cfg); // Apply config defaults
+		this._data = new WordArray(); // Data buffer
+		this._nDataBytes = 0; // Number of bytes in the data buffer
+		// console.log('BufferedBlockAlgorithm constructor this._data:', this.now, this._data);
+	}
+	/**
+	 * Resets this block algorithm's data buffer to its initial state.
+	 *
+	 * @example
+	 *
+	 *     bufferedBlockAlgorithm.reset();
+	 */
+	reset() {
+		this._data = new WordArray(); // Initial values
+		this._nDataBytes = 0;
+		// console.log('BufferedBlockAlgorithm reset data:', this.now, this._data);
+	}
 
-			/**
-			 * Initializes a newly created hasher.
-			 *
-			 * @param {Object} cfg (Optional) The configuration options to use for this hash computation.
-			 *
-			 * @example
-			 *
-			 *     const hasher = CryptoJS.algo.SHA256.create();
-			 */
-			init: function (cfg) {
-				this.cfg = this.cfg.extend(cfg); // Apply config defaults
-				this.reset(); // Set initial values
-			},
+	/**
+	 * Adds new data to this block algorithm's buffer.
+	 *
+	 * @param {WordArray|string} data The data to append. Strings are converted to a WordArray using UTF-8.
+	 *
+	 * @example
+	 *
+	 *     bufferedBlockAlgorithm._append('data');
+	 *     bufferedBlockAlgorithm._append(wordArray);
+	 */
+	_append(data) {
+		if (typeof data == 'string') data = Utf8.parse(data); // Convert string to WordArray, else assume WordArray already
+		// console.log('_append A data:', this.now, data);
+		this._data.concat(data); // Append
+		// console.log('_append B data:', this.now, data);
+		// console.log('_append C this._data/this.blockSize;:', this.now, this._data, this.blockSize);
+		this._nDataBytes += data.sigBytes;
+		// console.log('_append D this._nDataBytes.this.blockSize;', this.now, this._nDataBytes, this.blockSize);
+	}
 
-			/**
-			 * Resets this hasher to its initial state.
-			 *
-			 * @example
-			 *
-			 *     hasher.reset();
-			 */
-			reset: function () {
-				BufferedBlockAlgorithm.reset.call(this); // Reset data buffer
-				this._doReset(); // Perform concrete-hasher logic
-			},
+	/**
+	 * Processes available data blocks.
+	 *
+	 * This method invokes _doProcessBlock(offset), which must be implemented by a concrete subtype.
+	 *
+	 * @param {boolean} isDoFlush Whether all blocks and partial blocks should be processed.
+	 *
+	 * @return {WordArray} The processed data.
+	 *
+	 * @example
+	 *
+	 *     const processedData = bufferedBlockAlgorithm._process();
+	 *     const processedData = bufferedBlockAlgorithm._process(!!'flush');
+	 */
+	_process(isDoFlush) {
+		let processedWords;
 
-			/**
-			 * Updates this hasher with a message.
-			 *
-			 * @param {WordArray|string} messageUpdate The message to append.
-			 *
-			 * @return {Hasher} This hasher.
-			 *
-			 * @example
-			 *
-			 *     hasher.update('message');
-			 *     hasher.update(wordArray);
-			 */
-			update: function (messageUpdate) {
-				this._append(messageUpdate); // Append
-				this._process(); // Update the hash
-				return this; // Chainable
-			},
+		// Shortcuts
+		const data = this._data;
+		const dataWords = data.words;
+		const dataSigBytes = data.sigBytes;
+		const blockSize = this.blockSize;
+		const blockSizeBytes = blockSize * 4;
 
-			/**
-			 * Finalizes the hash computation.
-			 * Note that the finalize operation is effectively a destructive, read-once operation.
-			 *
-			 * @param {WordArray|string} messageUpdate (Optional) A final message update.
-			 *
-			 * @return {WordArray} The hash.
-			 *
-			 * @example
-			 *
-			 *     const hash = hasher.finalize();
-			 *     const hash = hasher.finalize('message');
-			 *     const hash = hasher.finalize(wordArray);
-			 */
-			finalize: function (messageUpdate) {
-				if (messageUpdate) this._append(messageUpdate); // Final message update
-				return this._doFinalize(); // Perform concrete-hasher logic
-			},
+		// Count blocks ready
+		const nBlocksReadyPre = dataSigBytes / blockSizeBytes;
+		const nBlocksReady = isDoFlush // Round up to include partial blocks
+			? Math.ceil(nBlocksReadyPre)
+			: // Round down to include only full blocks,
+			  // less the number of blocks that must remain in the buffer
+			  Math.max((nBlocksReadyPre | 0) - this._minBufferSize, 0);
+		// console.log('_process this._minBufferSize:', this._minBufferSize, this.now, this.sigBytes, this.words);
+		// console.log('_process blockSizeBytes:', blockSizeBytes);
+		// console.log('_process nBlocksReadyPre:', nBlocksReadyPre);
+		// console.log('_process nBlocksReady:', nBlocksReady);
+		// console.log('_process blockSize:', blockSize);
+		const nWordsReady = nBlocksReady * blockSize; // Count words ready
+		// console.log('_process nWordsReady:', nWordsReady);
+		// console.log('_process dataSigBytes:', dataSigBytes);
+		// console.log('_process dataWords:', dataWords);
+		const nBytesReady = Math.min(nWordsReady * 4, dataSigBytes); // Count bytes ready
+		// Process blocks
+		if (nWordsReady) {
+			for (let offset = 0; offset < nWordsReady; offset += blockSize) this._doProcessBlock(dataWords, offset); // Perform concrete-algorithm logic
+			// Remove processed words
+			// console.log('_process B dataWords:', dataWords);
+			processedWords = dataWords.splice(0, nWordsReady);
+			data.sigBytes -= nBytesReady;
+		}
+		// console.log('_process nBytesReady:', nBytesReady);
+		// console.log('_process processedWords:', processedWords, data.now, data.sigBytes, data.words);
+		return new WordArray(processedWords, nBytesReady); // Return processed words
+	}
+	_doProcessBlock(dataWords, offset) {}
+	_doFinalize() {}
+	/**
+	 * Creates a copy of this object.
+	 *
+	 * @return {Object} The clone.
+	 *
+	 * @example
+	 *
+	 *     const clone = bufferedBlockAlgorithm.clone();
+	 */
+	clone() {
+		const clonedOne = super.clone();
+		clonedOne._data = this._data.clone();
+		return clonedOne;
+	}
 
-			blockSize: 512 / 32,
+	_minBufferSize = 0;
+}
+C_lib.BufferedBlockAlgorithm = BufferedBlockAlgorithm; // Export BufferedBlockAlgorithm
 
-			/**
-			 * Creates a shortcut function to a hasher's object interface.
-			 *
-			 * @param {Hasher} hasher The hasher to create a helper for.
-			 *
-			 * @return {Function} The shortcut function.
-			 *
-			 * @static
-			 *
-			 * @example
-			 *
-			 *     const SHA256 = CryptoJS.lib.Hasher._createHelper(CryptoJS.algo.SHA256);
-			 */
-			_createHelper: function (hasher) {
-				return (message, cfg) => new hasher.init(cfg).finalize(message);
-			},
+/**
+ * Abstract hasher template.
+ *
+ * @property {number} blockSize The number of 32-bit words this hasher operates on. Default: 16 (512 bits)
+ */
+export class Hasher extends BufferedBlockAlgorithm {
+	/**
+	 * Configuration options.
+	 */
 
-			/**
-			 * Creates a shortcut function to the HMAC's object interface.
-			 *
-			 * @param {Hasher} hasher The hasher to use in this HMAC helper.
-			 *
-			 * @return {Function} The shortcut function.
-			 *
-			 * @static
-			 *
-			 * @example
-			 *
-			 *     const HmacSHA256 = CryptoJS.lib.Hasher._createHmacHelper(CryptoJS.algo.SHA256);
-			 */
-			_createHmacHelper: function (hasher) {
-				return (message, key) => new C_algo.HMAC.init(hasher, key).finalize(message);
-			},
-		});
-		C_lib.Hasher = Hasher; // Export Hasher
-		/**
-		 * Algorithm namespace.
-		 */
-		const C_algo = C.algo;
+	/**
+	 * Initializes a newly created hasher.
+	 *
+	 * @param {Object} cfg (Optional) The configuration options to use for this hash computation.
+	 *
+	 * @example
+	 *
+	 *     const hasher = new  CryptoJS.algo.SHA256();
+	 */
+	constructor(cfg) {
+		super(cfg);
+		this.blockSize = 512 / 32;
+		this.cfg = Base.mixIn(this.cfg, cfg); // Apply config defaults
+		this.cfg = Base.mixIn(this.cfg, { keySize: this.keySize, ivSize: this.ivSize, blockSize: this.blockSize });
+		this.reset(); // Set initial values
+	}
 
-		return C;
-	})(Math);
+	/**
+	 * Resets this hasher to its initial state.
+	 *
+	 * @example
+	 *
+	 *     hasher.reset();
+	 */
+	reset() {
+		super.reset(); // Reset data buffer
+		this._doReset(); // Perform concrete-hasher logic
+	}
+
+	/**
+	 * Updates this hasher with a message.
+	 *
+	 * @param {WordArray|string} messageUpdate The message to append.
+	 *
+	 * @return {Hasher} This hasher.
+	 *
+	 * @example
+	 *
+	 *     hasher.update('message');
+	 *     hasher.update(wordArray);
+	 */
+	update(messageUpdate) {
+		// console.log('update messageUpdate:' + messageUpdate);
+		this._append(messageUpdate); // Append
+		this._process(); // Update the hash
+		return this; // Chainable
+	}
+
+	/**
+	 * Finalizes the hash computation.
+	 * Note that the finalize operation is effectively a destructive, read-once operation.
+	 *
+	 * @param {WordArray|string} messageUpdate (Optional) A final message update.
+	 *
+	 * @return {WordArray} The hash.
+	 *
+	 * @example
+	 *
+	 *     const hash = hasher.finalize();
+	 *     const hash = hasher.finalize('message');
+	 *     const hash = hasher.finalize(wordArray);
+	 */
+	finalize(messageUpdate) {
+		if (messageUpdate) this._append(messageUpdate); // Final message update
+		const finalResult = this._doFinalize(); // Perform concrete-hasher logic
+		this.reset();
+		return finalResult;
+	}
+
+	/**
+	 * Creates a shortcut function to a hasher's object interface.
+	 *
+	 * @param {Hasher} hasher The hasher to create a helper for.
+	 *
+	 * @return {Function} The shortcut function.
+	 *
+	 * @static
+	 *
+	 * @example
+	 *
+	 *     const SHA256 = CryptoJS.lib.Hasher._createHelper(CryptoJS.algo.SHA256);
+	 */
+	static _createHelper(hasher) {
+		return (message, cfg) => new hasher(cfg).finalize(message);
+	}
+
+	/**
+	 * Creates a shortcut function to the HMAC's object interface.
+	 *
+	 * @param {Hasher} hasher The hasher to use in this HMAC helper.
+	 *
+	 * @return {Function} The shortcut function.
+	 *
+	 * @static
+	 *
+	 * @example
+	 *
+	 *     const HmacSHA256 = CryptoJS.lib.Hasher._createHmacHelper(CryptoJS.algo.SHA256);
+	 */
+	static _createHmacHelper(hasher) {
+		return (message, key) => new C_algo.HMAC(hasher, key).finalize(message);
+	}
+}
+C_lib.Hasher = Hasher; // Export Hasher
+/**
+ * Algorithm namespace.
+ */
+const C_algo = C.algo;
+C.lib.Base = Base;
+
+export const CryptoJS = C;

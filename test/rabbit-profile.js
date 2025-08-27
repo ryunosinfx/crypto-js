@@ -11,7 +11,7 @@ YUI.add(
 				data.key = C.enc.Hex.parse('000102030405060708090a0b0c0d0e0f');
 			},
 			profileSinglePartMessage: () => {
-				const singlePartMessage = '';
+				let singlePartMessage = '';
 				for (let i = 0; i < 500; i++) singlePartMessage += '12345678901234567890123456789012345678901234567890';
 				C.algo.Rabbit.createEncryptor(data.key).finalize(singlePartMessage) + '';
 			},
