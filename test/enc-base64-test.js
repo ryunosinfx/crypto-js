@@ -3,7 +3,6 @@ YUI.add(
 	Y => {
 		const C = CryptoJS;
 
-		// console.log('enc-base64-test.js loaded', C.enc.Base64);
 		Y.Test.Runner.add(
 			new Y.Test.Case({
 				name: 'Base64',

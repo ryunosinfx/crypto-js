@@ -5,7 +5,6 @@ export class ZeroPadding {
 	static pad = (data, blockSize) => {
 		const blockSizeBytes = blockSize * 4; // Shortcut
 		data.clamp(); // Pad
-		// console.log('ZeroPadding pad blockSize:', blockSize);
 		data.sigBytes += blockSizeBytes - (data.sigBytes % blockSizeBytes || blockSizeBytes);
 	};
 

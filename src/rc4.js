@@ -15,7 +15,6 @@ export class RC4 extends StreamCipher {
 		this.keySize = RC4.keySize;
 		this.ivSize = RC4.ivSize;
 		this.cfg = Base.mixIn(this.cfg, { keySize: this.keySize, ivSize: this.ivSize, blockSize: this.blockSize });
-		// console.log('--RC4---reset------------------------------------------------');
 		this.reset();
 	}
 
@@ -39,7 +38,6 @@ export class RC4 extends StreamCipher {
 	}
 
 	_doProcessBlock(M, offset) {
-		// console.log('_doProcessBlock A M/offset', M, offset);
 		M[offset] ^= this.generateKeystreamWord();
 	}
 
@@ -47,7 +45,6 @@ export class RC4 extends StreamCipher {
 		const S = this._S; // Shortcuts
 		let i = this._i; // Shortcuts
 		let j = this._j; // Shortcuts
-		// console.log('generateKeystreamWord A i/j/S', i, j, S);
 		let keystreamWord = 0; // Generate keystream word
 		for (let n = 0; n < 4; n++) {
 			i = (i + 1) % 256;
@@ -59,7 +56,6 @@ export class RC4 extends StreamCipher {
 		}
 		this._i = i; // Update counters
 		this._j = j; // Update counters
-		// console.log('generateKeystreamWord B i/j/S', i, j, S);
 		return keystreamWord;
 	}
 }
@@ -91,7 +87,6 @@ export class RC4Drop extends RC4 {
 	}
 	_doReset() {
 		super._doReset();
-		// console.log('RC4 _doReset Dropthis.cfg.drop', this.cfg.drop);
 		for (let i = this.cfg.drop; i > 0; i--) this.generateKeystreamWord(); // Drop
 	}
 }

@@ -131,7 +131,6 @@ export class Cipher extends BufferedBlockAlgorithm {
 	 */
 	finalize(dataUpdate) {
 		if (dataUpdate) this._append(dataUpdate); // Final data update
-		// console.log('finalize');
 		return this._doFinalize(); //finalProcessedData Perform concrete-cipher logic
 	}
 
@@ -234,7 +233,6 @@ export class BlockCipherMode extends Base {
 	 *     const mode = CryptoJS.mode.CBC.createEncryptor(cipher, iv.words);
 	 */
 	static createEncryptor(cipher, iv) {
-		// console.log('createEncryptor this.Encryptor/this.blockSize:', this.Encryptor, this.blockSize);
 		return new this.Encryptor(cipher, iv);
 	}
 
@@ -282,22 +280,9 @@ export class Encryptor extends BlockCipherMode {
 	processBlock(words, offset) {
 		const cipher = this._cipher; // Shortcuts
 		const blockSize = cipher.blockSize; // Shortcuts
-		// console.log('Encryptor A processBlock words:', words, 'offset:', offset, 'blockSize:', blockSize);
 		CBC.xorBlock(this, words, offset, blockSize); // XOR and encrypt
-		// console.log('Encryptor B processBlock words:', words, 'offset:', offset, 'blockSize:', blockSize);
 		cipher.encryptBlock(words, offset);
-		// console.log('Encryptor C processBlock words:', words, 'offset:', offset, 'blockSize:', blockSize);
 		this._prevBlock = words.slice(offset, offset + blockSize); // Remember this block to use with next block
-
-		// console.log(
-		// 	'Encryptor D processBlock words:',
-		// 	words,
-		// 	'offset:',
-		// 	offset,
-		// 	'blockSize:',
-		// 	blockSize,
-		// 	this._prevBlock
-		// );
 	}
 }
 
@@ -322,7 +307,6 @@ export class Decryptor extends BlockCipherMode {
 	processBlock(words, offset) {
 		const cipher = this._cipher; // Shortcuts
 		const blockSize = cipher.blockSize; // Shortcuts
-		// console.log('Decryptor processBlock', blockSize);
 		const thisBlock = words.slice(offset, offset + blockSize); // Remember this block to use with next block
 		cipher.decryptBlock(words, offset); // Decrypt and XOR
 		CBC.xorBlock(this, words, offset, blockSize);
@@ -338,7 +322,6 @@ export class CBC extends BlockCipherMode {
 	static xorBlock(self, words, offset, blockSize) {
 		const iv = self._iv; // Shortcut
 		const block = iv ? iv : self._prevBlock;
-		// console.log('xorBlock block:', self, block, iv, self._prevBlock);
 		if (iv) self._iv = undefined; // Choose mixing block// Remove IV for subsequent blocks
 		for (let i = 0; i < blockSize; i++) words[offset + i] ^= block[i]; // XOR blocks
 	}
@@ -361,17 +344,13 @@ export class Pkcs7 {
 	 *     CryptoJS.pad.Pkcs7.pad(wordArray, 4);
 	 */
 	static pad(data, blockSize) {
-		// console.log('pad 0 data, blockSize:', data, blockSize);
 		const blockSizeBytes = blockSize * 4; // Shortcut
 		const nPaddingBytes = blockSizeBytes - (data.sigBytes % blockSizeBytes); // Count padding bytes
 		const paddingWord = (nPaddingBytes << 24) | (nPaddingBytes << 16) | (nPaddingBytes << 8) | nPaddingBytes; // Create padding word
 		const paddingWords = []; // Create padding
 		for (let i = 0; i < nPaddingBytes; i += 4) paddingWords.push(paddingWord);
-		// console.log('pad A nPaddingBytes:', nPaddingBytes);
 		const padding = new WordArray(paddingWords, nPaddingBytes);
-		// console.log('pad B padding:', padding);
 		data.concat(padding); // Add padding
-		// console.log('pad C data:', data);
 	}
 
 	/**
@@ -405,23 +384,19 @@ export class BlockCipher extends Cipher {
 	constructor(isEncryption, key, cfg) {
 		super(isEncryption, key, cfg);
 		this.cfg = Base.mixIn(this.cfg, cfg);
-		// console.log('AAAAA!!!constructor this.cfg :', this.cfg);
 		this.cfg = Base.mixIn(this.cfg, {
 			mode: CBC,
 			padding: Pkcs7,
 		});
 		this.blockSize = 128 / 32;
 		this.cfg = Base.mixIn(this.cfg, { keySize: this.keySize, ivSize: this.ivSize, blockSize: this.blockSize });
-		// console.log('BBBBB!!!constructor this.cfg :', this.cfg);
 	}
 
 	reset() {
 		super.reset(); // Reset cipher
-		// console.log('reset this.cfg:', this.cfg);
 		const cfg = this.cfg; // Shortcuts
 		const iv = cfg.iv; // Shortcuts
 		const mode = cfg.mode; // Shortcuts
-		// console.log('reset mode:', mode);
 		const isRestBlockMode = this.isEncryption; // Reset block mode//== this._ENC_XFORM_MODE
 		const modeCreator = isRestBlockMode ? mode.createEncryptor : mode.createDecryptor;
 		if (!isRestBlockMode) this._minBufferSize = 1; /* if (this._xformMode == this._DEC_XFORM_MODE) */ // Keep at least one block in the buffer for unpadding
@@ -438,13 +413,6 @@ export class BlockCipher extends Cipher {
 	}
 
 	_doFinalize() {
-		// console.log(
-		// 	'_doFinalize! A this.isEncryption:' + (this.isEncryption == this._ENC_XFORM_MODE) + '/this.cfg.padding:',
-		// 	this.isEncryption,
-		// 	this._ENC_XFORM_MODE,
-		// 	this.cfg.padding
-		// );
-		// console.log('_doFinalize! B this.cfg:', this.cfg, this.blockSize);
 		let finalProcessedBlocks;
 		const padding = this.cfg.padding; // Shortcut
 		// Finalize
@@ -455,14 +423,6 @@ export class BlockCipher extends Cipher {
 			finalProcessedBlocks = this._process(!!'flush'); // Process final blocks
 			padding.unpad(finalProcessedBlocks); // Unpad data
 		}
-		// console.log(
-		// 	'finalProcessedBlocks this._data:',
-		// 	this._data,
-		// 	'this.blockSize:',
-		// 	this.blockSize,
-		// 	padding,
-		// 	finalProcessedBlocks
-		// );
 		return finalProcessedBlocks;
 	}
 	// static _createHelper = Cipher._createHelper;
@@ -546,11 +506,9 @@ export class OpenSSLFormatter {
 	static stringify = cipherParams => {
 		const ciphertext = cipherParams.ciphertext; // Shortcuts
 		const salt = cipherParams.salt; // Shortcuts
-		// console.log('stringify A ciphertext/cipherParams:', ciphertext, salt);
 		const wordArray = salt // Format
 			? new WordArray([0x53616c74, 0x65645f5f]).concat(salt).concat(ciphertext)
 			: ciphertext;
-		// console.log('stringify B WordArray/cipherParams:', WordArray, salt);
 		return wordArray.toString(C.enc.Base64);
 	};
 
@@ -617,20 +575,11 @@ export class SerializableCipher extends Base {
 	encrypt(cipherClass, message, key, cfg) {
 		const cfgCurrent = Base.mixIn({}, this.cfg); // Apply config defaults
 		const cfgExtended = Base.mixIn(cfgCurrent, cfg); // Apply config defaults
-		// console.log('SerializableCipher this.cfg,:', this.cfg);
-		// console.log('SerializableCipher cfg:', cfg);
-		// console.log('SerializableCipher cipher:', cipherClass);
-		// console.log('SerializableCipher message:', message);
-		// console.log('SerializableCipher cfgExtended:', cfgExtended);
 		// const encryptor = cipher.createEncryptor(key, cfgExtended); // Encrypt
 		const encryptor = new cipherClass(true, key, cfgExtended); // Encrypt
 		const ciphertext = encryptor.finalize(message);
-		// console.log('SerializableCipher encryptor.finalize:', encryptor.finalize);
-		// console.log('SerializableCipher encryptor:', encryptor);
 		const cipherCfg = encryptor.cfg; // Shortcut
 		// Create and return serializable cipher params
-		// console.log('SerializableCipher 1 ciphertext:', ciphertext);
-		// console.log('SerializableCipher 2 ciphertext:', ciphertext.toString());
 		this.ciphertext = ciphertext;
 		return new CipherParams({
 			ciphertext,
@@ -711,19 +660,9 @@ export class OpenSSLKdf {
 	 */
 	static execute = (password, keySize, ivSize, salt, hasher) => {
 		const saltForUse = salt ? salt : WordArray.random(64 / 8); // Generate random salt
-		// console.log(
-		// 	'execute password/keySize/ivSize/saltForUse/hasher',
-		// 	password,
-		// 	keySize,
-		// 	ivSize,
-		// 	salt,
-		// 	saltForUse,
-		// 	hasher
-		// );
 		const key = hasher // Derive key and IV
 			? new C.algo.EvpKDF({ keySize: keySize + ivSize, hasher: hasher }).compute(password, saltForUse)
 			: new C.algo.EvpKDF({ keySize: keySize + ivSize }).compute(password, saltForUse);
-		// console.log('execute ivSize/key:', ivSize, key);
 		const iv = new WordArray(key.words.slice(keySize), ivSize * 4); // Separate key and IV
 		key.sigBytes = keySize * 4;
 		return new CipherParams({ key: key, iv: iv, salt: saltForUse }); // Return params
@@ -741,7 +680,6 @@ class PasswordBasedCipher extends SerializableCipher {
 	 */
 	constructor() {
 		super();
-		// console.log('this.cfg:', this.cfg);
 		this.cfg = Base.mixIn(this.cfg, {
 			kdf: OpenSSLKdf,
 		});
@@ -765,8 +703,6 @@ class PasswordBasedCipher extends SerializableCipher {
 	 *     const ciphertextParams = CryptoJS.lib.PasswordBasedCipher.encrypt(CryptoJS.algo.AES, message, 'password', { format: CryptoJS.format.OpenSSL });
 	 */
 	encrypt(cipherClass, message, password, cfg) {
-		// console.log('PasswordBasedCipher encrypt this.cfg,:', this.cfg);
-		// console.log('PasswordBasedCipher encrypt cfg:', cfg);
 		const cfgCurrent = Base.mixIn({}, this.cfg); // Apply config defaults
 		const cfgExtended = Base.mixIn(cfgCurrent, cfg); // Apply config defaults
 		const derivedParams = cfgExtended.kdf.execute(
@@ -779,7 +715,6 @@ class PasswordBasedCipher extends SerializableCipher {
 		cfgExtended.iv = derivedParams.iv; // Add IV to config
 		const ciphertext = super.encrypt(cipherClass, message, derivedParams.key, cfgExtended); // Encrypt
 		Base.mixIn(ciphertext, derivedParams); // Mix in derived params
-		// console.log('PasswordBasedCipher ciphertext:', ciphertext.toString());
 		this.ciphertext = ciphertext;
 		return ciphertext;
 	}

@@ -274,11 +274,6 @@ export class SHA512 extends Hasher {
 		dataWords[(((nBitsLeft + 128) >>> 10) << 5) + 30] = Math.floor(nBitsTotal / 0x100000000);
 		dataWords[(((nBitsLeft + 128) >>> 10) << 5) + 31] = nBitsTotal;
 		data.sigBytes = dataWords.length * 4;
-		// console.log('SHA512 _doFinalize data:', data);
-		// console.log('SHA512 _doFinalize dataWords:', dataWords);
-		// console.log('SHA512 _doFinalize this._nDataBytes:', this._nDataBytes);
-		// console.log('SHA512 _doFinalize nBitsTotal:', nBitsTotal);
-		// console.log('SHA512 _doFinalize nBitsLeft:', nBitsLeft);
 		this._process(); // Hash final blocks
 		return this._hash.toX32(); // Convert hash to 32-bit word array before returning// Return final computed hash
 	}

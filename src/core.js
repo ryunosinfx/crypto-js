@@ -158,7 +158,6 @@ export class Base {
 		if (!properties) return base;
 		for (const name in properties) base[name] = properties[name];
 		if (properties.hasOwnProperty('toString')) base.toString = properties.toString; // IE won't copy toString using the loop above
-		// console.log('Base.mixIn:', base);
 		return base;
 	};
 
@@ -232,9 +231,7 @@ export class WordArray extends Base {
 		}
 		this.words = words;
 		const wordsInit = this.words;
-		// console.log('WordArray constructor wordsInit.length/sigBytes:' + wordsInit.length, sigBytes);
 		this.sigBytes = sigBytes !== undefined ? sigBytes : wordsInit.length * 4;
-		// console.log('constructor this.sigBytes/this.words:', this.now, this.sigBytes, this.words);
 	}
 
 	/**
@@ -251,7 +248,6 @@ export class WordArray extends Base {
 	 *     const string = wordArray.toString(CryptoJS.enc.Utf8);
 	 */
 	toString(encoder) {
-		// console.log('WordArray toString encoder:' + encoder, this.now, this.words.length, this.sigBytes);
 		return (encoder || Hex).stringify(this);
 	}
 
@@ -277,15 +273,6 @@ export class WordArray extends Base {
 		}
 		const thisSigBytes = this.sigBytes;
 		const thatSigBytes = wordArray.sigBytes;
-		// console.log('concat A clamp thatSigBytes/thatWords:', wordArray.now, thatSigBytes, thatWords);
-		// console.log('concat B clamp thisSigBytes/words:', this.now, thisSigBytes, this.words);
-		// console.log('concat A1 clamp thatSigBytes/thatWords:', wordArray.now, thatSigBytes, thatWords);
-		// console.log(
-		// 	'concat B1 clamp thisSigBytes/words:',
-		// 	this.now,
-		// 	thisSigBytes === thatSigBytes,
-		// 	this.words === thatWords
-		// );
 
 		this.clamp(); // Clamp excess bits
 		// Concat
@@ -297,7 +284,6 @@ export class WordArray extends Base {
 			}
 		else for (let j = 0; j < thatSigBytes; j += 4) thisWords[(thisSigBytes + j) >>> 2] = thatWords[j >>> 2]; // Copy one word at a time
 		this.sigBytes += thatSigBytes;
-		// console.log('concat C clamp this.sigBytes/words:', this.now, this.sigBytes, this.words);
 		return this; // Chainable
 	}
 
@@ -312,11 +298,9 @@ export class WordArray extends Base {
 		// Shortcuts
 		const words = this.words;
 		const sigBytes = this.sigBytes;
-		// console.log('core AA clamp sigBytes/words:', this.now, sigBytes, this.words);
 
 		// Clamp
 		words[sigBytes >>> 2] &= 0xffffffff << (32 - (sigBytes % 4) * 8);
-		// console.log('core AB clamp sigBytes/words:', this.now, sigBytes, this.words);
 		try {
 			words.length = Math.ceil(sigBytes / 4);
 		} catch (e) {
@@ -356,7 +340,6 @@ export class WordArray extends Base {
 	static random(nBytes) {
 		const words = [];
 		for (let i = 0; i < nBytes; i += 4) words.push(cryptoSecureRandomInt());
-		// console.log('random nBytes:', nBytes);
 		return new WordArray(words, nBytes);
 	}
 }
@@ -409,7 +392,6 @@ export class Hex {
 		const words = []; // Convert
 		for (let i = 0; i < hexStrLength; i += 2)
 			words[i >>> 3] |= parseInt(hexStr.substr(i, 2), 16) << (24 - (i % 8) * 4);
-		// console.log('parse hexStrLength:', hexStrLength);
 		return new WordArray(words, hexStrLength / 2);
 	};
 }
@@ -460,7 +442,6 @@ export class Latin1 {
 		const words = []; // Convert
 		for (let i = 0; i < latin1StrLength; i++)
 			words[i >>> 2] |= (latin1Str.charCodeAt(i) & 0xff) << (24 - (i % 4) * 8);
-		// console.log('parse latin1StrLength:', latin1StrLength);
 		return new WordArray(words, latin1StrLength);
 	};
 }
@@ -527,7 +508,6 @@ export class BufferedBlockAlgorithm extends Base {
 		this.cfg = Base.mixIn(this.cfg, cfg); // Apply config defaults
 		this._data = new WordArray(); // Data buffer
 		this._nDataBytes = 0; // Number of bytes in the data buffer
-		// console.log('BufferedBlockAlgorithm constructor this._data:', this.now, this._data);
 	}
 	/**
 	 * Resets this block algorithm's data buffer to its initial state.
@@ -539,7 +519,6 @@ export class BufferedBlockAlgorithm extends Base {
 	reset() {
 		this._data = new WordArray(); // Initial values
 		this._nDataBytes = 0;
-		// console.log('BufferedBlockAlgorithm reset data:', this.now, this._data);
 	}
 
 	/**
@@ -554,12 +533,8 @@ export class BufferedBlockAlgorithm extends Base {
 	 */
 	_append(data) {
 		if (typeof data == 'string') data = Utf8.parse(data); // Convert string to WordArray, else assume WordArray already
-		// console.log('_append A data:', this.now, data);
 		this._data.concat(data); // Append
-		// console.log('_append B data:', this.now, data);
-		// console.log('_append C this._data/this.blockSize;:', this.now, this._data, this.blockSize);
 		this._nDataBytes += data.sigBytes;
-		// console.log('_append D this._nDataBytes.this.blockSize;', this.now, this._nDataBytes, this.blockSize);
 	}
 
 	/**
@@ -593,26 +568,15 @@ export class BufferedBlockAlgorithm extends Base {
 			: // Round down to include only full blocks,
 			  // less the number of blocks that must remain in the buffer
 			  Math.max((nBlocksReadyPre | 0) - this._minBufferSize, 0);
-		// console.log('_process this._minBufferSize:', this._minBufferSize, this.now, this.sigBytes, this.words);
-		// console.log('_process blockSizeBytes:', blockSizeBytes);
-		// console.log('_process nBlocksReadyPre:', nBlocksReadyPre);
-		// console.log('_process nBlocksReady:', nBlocksReady);
-		// console.log('_process blockSize:', blockSize);
 		const nWordsReady = nBlocksReady * blockSize; // Count words ready
-		// console.log('_process nWordsReady:', nWordsReady);
-		// console.log('_process dataSigBytes:', dataSigBytes);
-		// console.log('_process dataWords:', dataWords);
 		const nBytesReady = Math.min(nWordsReady * 4, dataSigBytes); // Count bytes ready
 		// Process blocks
 		if (nWordsReady) {
 			for (let offset = 0; offset < nWordsReady; offset += blockSize) this._doProcessBlock(dataWords, offset); // Perform concrete-algorithm logic
 			// Remove processed words
-			// console.log('_process B dataWords:', dataWords);
 			processedWords = dataWords.splice(0, nWordsReady);
 			data.sigBytes -= nBytesReady;
 		}
-		// console.log('_process nBytesReady:', nBytesReady);
-		// console.log('_process processedWords:', processedWords, data.now, data.sigBytes, data.words);
 		return new WordArray(processedWords, nBytesReady); // Return processed words
 	}
 	_doProcessBlock(dataWords, offset) {}
@@ -688,7 +652,6 @@ export class Hasher extends BufferedBlockAlgorithm {
 	 *     hasher.update(wordArray);
 	 */
 	update(messageUpdate) {
-		// console.log('update messageUpdate:' + messageUpdate);
 		this._append(messageUpdate); // Append
 		this._process(); // Update the hash
 		return this; // Chainable

@@ -62,11 +62,6 @@ export class UnitTestSerializableCipher {
 					const actual = C.lib.SerializableCipher.encrypt(C.algo.AES, data.message, data.key, {
 						iv: data.iv,
 					});
-					// console.log('---A-----------------------------------------------');
-					// console.log(expected.blockSize, actual.blockSize);
-					// console.log('---B-----------------------------------------------');
-					// console.log(expected, actual);
-					// console.log('---C-----------------------------------------------');
 					// Test
 					assert.equal(expected.toString(), actual.toString());
 					assert.equal(expected.ciphertext.toString(), actual.ciphertext.toString());

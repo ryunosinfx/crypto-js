@@ -19,19 +19,16 @@ export class RabbitLegacy extends StreamCipher {
 	static blockSize = 128 / 32;
 	static ivSize = 64 / 32;
 	constructor(isEncryption, key, cfg) {
-		// console.log('RabbitLegacy constructor A cfg:', cfg);
 		super(isEncryption, key, cfg);
 		this.cfg = Base.mixIn(this.cfg, cfg);
 		this.blockSize = RabbitLegacy.blockSize;
 		this.ivSize = RabbitLegacy.ivSize;
 		this.cfg = Base.mixIn(this.cfg, { keySize: this.keySize, ivSize: this.ivSize, blockSize: this.blockSize });
-		// console.log('RabbitLegacy constructor B this.cfg:', this.cfg);
 		this.reset();
 	}
 	_doReset() {
 		const K = this._key.words; // Shortcuts
 		const iv = this.cfg.iv; // Shortcuts
-		// console.log('_doReset K, iv,X,C', K, iv, this._X, this._C);
 
 		// Generate initial state values
 		const X = [
@@ -88,7 +85,6 @@ export class RabbitLegacy extends StreamCipher {
 	}
 
 	_doProcessBlock(M, offset) {
-		// console.log('_doProcessBlock M, offset,X,C', M, offset, this._X, this._C);
 		const X = this._X; // Shortcut
 		this.nextState(); // Iterate the system
 		S[0] = X[0] ^ (X[5] >>> 16) ^ (X[3] << 16); // Generate four keystream words
@@ -134,7 +130,6 @@ export class RabbitLegacy extends StreamCipher {
 		X[5] = (G[5] + ((G[4] << 8) | (G[4] >>> 24)) + G[3]) | 0;
 		X[6] = (G[6] + ((G[5] << 16) | (G[5] >>> 16)) + ((G[4] << 16) | (G[4] >>> 16))) | 0;
 		X[7] = (G[7] + ((G[6] << 8) | (G[6] >>> 24)) + G[5]) | 0;
-		// console.log('nextState X,C', this._X, this._C);
 	}
 }
 

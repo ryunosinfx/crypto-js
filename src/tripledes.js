@@ -570,7 +570,6 @@ export class DES extends BlockCipher {
 		this.reset();
 	}
 	_doReset() {
-		// console.log('DES _doReset');
 		super._doReset();
 		const key = this._key; // Shortcuts
 		const keyWords = key.words; // Shortcuts
@@ -608,12 +607,10 @@ export class DES extends BlockCipher {
 	}
 
 	encryptBlock(M, offset) {
-		// console.log('DES encryptBlock M/offset', M, offset, this._subKeys);
 		this._doCryptBlock(M, offset, this._subKeys);
 	}
 
 	decryptBlock(M, offset) {
-		// console.log('DES decryptBlock M/offset', M, offset, this._invSubKeys);
 		this._doCryptBlock(M, offset, this._invSubKeys);
 	}
 
@@ -687,7 +684,6 @@ export class TripleDES extends BlockCipher {
 	}
 
 	_doReset() {
-		// console.log('TripleDES _doReset');
 		super._doReset();
 		// Shortcuts
 		const key = this._key;

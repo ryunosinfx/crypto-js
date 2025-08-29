@@ -42,12 +42,10 @@ export class UnitTestBlowfish {
 				});
 
 				it('testEncrypt', () => {
-					// console.log('-----A-testEncrypt-----------------------------------');
 					const encryptedA = C.Blowfish.encrypt('Test', 'pass', {
 						salt: data.saltA,
 						hasher: CryptoJS.algo.SHA256,
 					}).toString();
-					// console.log('-----B-testEncrypt-----------------------------------', encryptedA);
 					assert.equal('U2FsdGVkX1+qAAAAAAAAAKTIU8MPrBdH', encryptedA);
 				});
 

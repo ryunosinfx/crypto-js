@@ -118,7 +118,6 @@ export class UnitTestRabbitLegacy {
 				});
 
 				it('testHelper', () => {
-					// console.log('----testHelper--A---------------------------------');
 					// Save original random method
 					const random = C.lib.WordArray.random;
 
@@ -146,7 +145,6 @@ export class UnitTestRabbitLegacy {
 
 					// Restore random method
 					C.lib.WordArray.random = random;
-					// console.log('----testHelper--B---------------------------------');
 				});
 			});
 		});

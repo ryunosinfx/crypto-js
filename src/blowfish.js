@@ -268,7 +268,6 @@ export class Blowfish extends BlockCipher {
 		this.reset();
 	}
 	_doReset() {
-		// console.log('Blowfish _doReset');
 		super._doReset();
 		if (this._keyPriorReset === this._key) return; // Skip reset of nRounds has been set before and key did not change
 		const key = this._key; // Shortcuts
@@ -279,14 +278,12 @@ export class Blowfish extends BlockCipher {
 	}
 
 	encryptBlock(M, offset) {
-		// console.log('Blowfish encryptBlock', M, offset);
 		const res = BlowFish_Encrypt(BLOWFISH_CTX, M[offset], M[offset + 1]);
 		M[offset] = res.left;
 		M[offset + 1] = res.right;
 	}
 
 	decryptBlock(M, offset) {
-		// console.log('Blowfish decryptBlock', M, offset);
 		const res = BlowFish_Decrypt(BLOWFISH_CTX, M[offset], M[offset + 1]);
 		M[offset] = res.left;
 		M[offset + 1] = res.right;

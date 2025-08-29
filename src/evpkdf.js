@@ -36,7 +36,6 @@ export class EvpKDF extends Base {
 			})
 		);
 		this.cfg = Base.mixIn(this.cfg, cfg);
-		// console.log('EvpKDF this.cfg', this.cfg);
 	}
 
 	/**
@@ -52,7 +51,6 @@ export class EvpKDF extends Base {
 	 *     const key = kdf.compute(password, salt);
 	 */
 	compute(password, salt) {
-		// console.log('compute password/salt', password, salt);
 		let block;
 		const cfg = this.cfg; // Shortcut
 		const hasher = new cfg.hasher(); // Init hasher
@@ -61,9 +59,7 @@ export class EvpKDF extends Base {
 		const keySize = cfg.keySize; // Shortcuts
 		const iterations = cfg.iterations; // Shortcuts
 		// Generate key
-		// console.log('compute derivedKeyWords/keySize', derivedKeyWords, keySize);
 		while (derivedKeyWords.length < keySize) {
-			// console.log('compute block/iterations', block, iterations);
 			if (block) hasher.update(block);
 			block = hasher.update(password).finalize(salt);
 			hasher.reset();
@@ -96,6 +92,5 @@ export class EvpKDF extends Base {
  *     const key = CryptoJS.EvpKDF(password, salt, { keySize: 8, iterations: 1000 });
  */
 C.EvpKDF = (password, salt, cfg) => {
-	// console.log('EvpKDF password/salt/cfg', password, salt, cfg);
 	return new EvpKDF(cfg).compute(password, salt);
 };

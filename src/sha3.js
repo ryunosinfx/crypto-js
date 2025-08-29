@@ -62,7 +62,6 @@ export class SHA3 extends Hasher {
 	_doReset() {
 		const state = (this._state = []);
 		for (let i = 0; i < 25; i++) state[i] = new X64Word();
-		// console.log('SHA3 _doReset this.cfg.outputLength:' + this.cfg.outputLength);
 		this.blockSize = (1600 - 2 * this.cfg.outputLength) / 32;
 	}
 
@@ -162,7 +161,6 @@ export class SHA3 extends Hasher {
 		// Add padding
 		dataWords[nBitsLeft >>> 5] |= 0x1 << (24 - (nBitsLeft % 32));
 		dataWords[((Math.ceil((nBitsLeft + 1) / blockSizeBits) * blockSizeBits) >>> 5) - 1] |= 0x80;
-		// console.log('SHA3 _doFinalize dataWords.length :', dataWords.length);
 		data.sigBytes = dataWords.length * 4;
 		this._process(); // Hash final blocks
 		const state = this._state; // Shortcuts

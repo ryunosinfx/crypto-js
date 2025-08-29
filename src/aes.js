@@ -61,7 +61,6 @@ export class AES extends BlockCipher {
 	}
 
 	_doReset() {
-		// console.log('AES _doReset');
 		super._doReset();
 		let t;
 		if (this._nRounds && this._keyPriorReset === this._key) return; // Skip reset of nRounds has been set before and key did not change

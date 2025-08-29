@@ -24,7 +24,6 @@ export class X64Word extends Base {
 	 */
 	constructor(high, low, sig = '') {
 		super();
-		// console.log('X64Word init high/low :', high, low, sig);
 		this.high = high;
 		this.low = low;
 	}
@@ -225,7 +224,6 @@ export class X64WordArray extends Base {
 	constructor(words = [], sigBytes) {
 		super();
 		this.words = words;
-		// console.log('X64WordArray constructor words/words.length :', words, words.length);
 		this.sigBytes = sigBytes != undefined ? sigBytes : words.length * 8;
 	}
 
@@ -241,14 +239,12 @@ export class X64WordArray extends Base {
 	toX32() {
 		const x64Words = this.words; // Shortcuts
 		const x64WordsLength = x64Words.length; // Shortcuts
-		// console.log('toX32 x64Words/x64WordsLength:', x64Words, x64WordsLength);
 		const x32Words = []; // Convert
 		for (let i = 0; i < x64WordsLength; i++) {
 			const x64Word = x64Words[i];
 			x32Words.push(x64Word.high);
 			x32Words.push(x64Word.low);
 		}
-		// console.log('toX32 x32Words/this.sigBytes:', x32Words, this.sigBytes);
 		return new X32WordArray(x32Words, this.sigBytes);
 	}
 

@@ -62,7 +62,6 @@ export class UnitTestConfig {
 
 				it('testCustomKDFHasher', () => {
 					//SHA1
-					// console.log('------------------------A-encryptedSHA1');
 					const encryptedSHA1 = C.AES.encrypt('Test', 'Pass', {
 						salt: data.saltA,
 						hasher: C.algo.SHA1,
@@ -71,10 +70,8 @@ export class UnitTestConfig {
 						'Test',
 						C.AES.decrypt(encryptedSHA1, 'Pass', { hasher: C.algo.SHA1 }).toString(C.enc.Utf8)
 					);
-					// console.log('------------------------B-encryptedSHA1', encryptedSHA1);
 
 					//SHA256
-					// console.log('------------------------A-encryptedDefault');
 					const encryptedSHA256 = C.AES.encrypt('Test', 'Pass', {
 						salt: data.saltA,
 						hasher: C.algo.SHA256,
@@ -83,10 +80,8 @@ export class UnitTestConfig {
 						'Test',
 						C.AES.decrypt(encryptedSHA256, 'Pass', { hasher: C.algo.SHA256 }).toString(C.enc.Utf8)
 					);
-					// console.log('------------------------B1-encryptedSHA256', encryptedSHA256);
 
 					//SHA512
-					// console.log('------------------------A-encryptedDefault');
 					const encryptedSHA512 = C.AES.encrypt('Test', 'Pass', {
 						salt: data.saltA,
 						hasher: C.algo.SHA512,
@@ -95,10 +90,8 @@ export class UnitTestConfig {
 						'Test',
 						C.AES.decrypt(encryptedSHA512, 'Pass', { hasher: C.algo.SHA512 }).toString(C.enc.Utf8)
 					);
-					// console.log('------------------------B1-encryptedSHA512', encryptedSHA512);
 
 					//Default: MD5
-					// console.log('------------------------A-encryptedDefault');
 					const encryptedDefault = C.AES.encrypt('Test', 'Pass', { salt: data.saltA }).toString();
 					const encryptedMD5 = C.AES.encrypt('Test', 'Pass', {
 						salt: data.saltA,
@@ -108,15 +101,9 @@ export class UnitTestConfig {
 						'Test',
 						C.AES.decrypt(encryptedMD5, 'Pass', { hasher: C.algo.MD5 }).toString(C.enc.Utf8)
 					);
-					// console.log('------------------------B2-encryptedMD5', encryptedMD5);
-					// console.log('------------------------B-encryptedDefault', encryptedDefault);
 					assert.equal(encryptedDefault, encryptedMD5);
 
 					//Different KDFHasher
-					// console.log('-------------------------encryptedDefault', encryptedDefault);
-					// console.log('-------------------------encryptedSHA1', encryptedSHA1);
-					// console.log('-------------------------encryptedSHA256', encryptedSHA256);
-					// console.log('-------------------------encryptedSHA512', encryptedSHA512);
 					assert.notEqual(encryptedDefault, encryptedSHA1);
 					assert.notEqual(encryptedDefault, encryptedSHA256);
 					assert.notEqual(encryptedDefault, encryptedSHA512);
