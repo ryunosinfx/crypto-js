@@ -9,7 +9,6 @@ function extendWithCMAC(C) {
 		const ext = !C.hasOwnProperty('ext') ? (C.ext = {}) : C.ext;
 
 		// Shortcuts
-		const Base = C.lib.Base;
 		const WordArray = C.lib.WordArray;
 
 		// Constants

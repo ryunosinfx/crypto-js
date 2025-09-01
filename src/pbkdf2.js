@@ -1,4 +1,6 @@
-import { CryptoJS, Base, WordArray } from './core.js';
+import { CryptoJS } from './core.js';
+import { Base } from './abstract-base.js';
+import { WordArray } from './word-array.js';
 import { HMAC } from './hmac.js';
 import { SHA256 } from './sha256.js';
 // Shortcuts
@@ -16,6 +18,7 @@ export class PBKDF2 extends Base {
 	 * @property {number} iterations The number of iterations to perform. Default: 250000
 	 */
 
+	static keySize = 128 / 32;
 	/**
 	 * Initializes a newly created key derivation function.
 	 *
@@ -29,7 +32,7 @@ export class PBKDF2 extends Base {
 	 */
 	constructor(cfg) {
 		super();
-		this.keySize = 128 / 32;
+		this.keySize = PBKDF2.keySize;
 		this.iterations = 250000;
 		this.cfg = Base.mixIn(this.cfg, {
 			keySize: this.keySize,

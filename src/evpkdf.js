@@ -1,13 +1,18 @@
-import { CryptoJS, WordArray, Base } from './core.js';
-import { MD5 } from './md5.js';
-// Shortcuts
-const C = CryptoJS;
+import { CryptoJS as C } from './core.js';
+import { Base } from './abstract-base.js';
+import { WordArray } from './word-array.js';
 
 /**
  * This key derivation function is meant to conform with EVP_BytesToKey.
  * www.openssl.org/docs/crypto/EVP_BytesToKey.html
  */
 export class EvpKDF extends Base {
+	static keySize = 128 / 32;
+	static defaultConf = {
+		keySize: EvpKDF.keySize,
+		hasher: null,
+		iterations: 1,
+	};
 	/**
 	 * Configuration options.
 	 *
@@ -27,14 +32,7 @@ export class EvpKDF extends Base {
 	 */
 	constructor(cfg) {
 		super();
-		this.cfg = Base.mixIn(
-			this.cfg,
-			Base.mixIn(this.cfg, {
-				keySize: 128 / 32,
-				hasher: MD5,
-				iterations: 1,
-			})
-		);
+		this.cfg = Base.mixIn(this.cfg, Base.mixIn(this.cfg, EvpKDF.defaultConf));
 		this.cfg = Base.mixIn(this.cfg, cfg);
 	}
 

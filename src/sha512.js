@@ -1,4 +1,7 @@
-import { CryptoJS, Base, WordArray, Hasher } from './core.js';
+import { CryptoJS } from './core.js';
+import { WordArray } from './word-array.js';
+import { Base } from './abstract-base.js';
+import { Hasher } from './abstract-hasher.js';
 import { X64Word, X64WordArray } from './x64-core.js';
 // Shortcuts
 const C = CryptoJS;

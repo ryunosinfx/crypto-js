@@ -1,5 +1,6 @@
-import { CryptoJS, Base } from './core.js';
-import { StreamCipher } from './cipher-core.js';
+import { CryptoJS } from './core.js';
+import { Base } from './abstract-base.js';
+import { StreamCipher } from './abstract-stream-cipher.js';
 // Shortcuts
 const C = CryptoJS;
 

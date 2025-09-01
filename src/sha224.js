@@ -1,4 +1,5 @@
-import { CryptoJS, Base, WordArray } from './core.js';
+import { CryptoJS } from './core.js';
+import { WordArray } from './word-array.js';
 import { SHA256 } from './sha256.js';
 // Shortcuts
 const C = CryptoJS;

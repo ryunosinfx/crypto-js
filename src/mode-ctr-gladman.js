@@ -1,4 +1,4 @@
-import { BlockCipherMode } from './cipher-core.js';
+import { BlockCipherMode } from './abstract-block-cipher-mode.js';
 /** @preserve
  * Counter block mode compatible with  Dr Brian Gladman fileenc.c
  * derived from CryptoJS.mode.CTR

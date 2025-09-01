@@ -1,4 +1,5 @@
-import { CryptoJS, Base, WordArray } from './core.js';
+import { CryptoJS } from './core.js';
+import { WordArray } from './word-array.js';
 import { SHA512 } from './sha512.js';
 import { X64Word, X64WordArray } from './x64-core.js';
 // Shortcuts

@@ -1,6 +1,6 @@
-import { CryptoJS, WordArray, Hasher } from './core.js';
-// Shortcuts
-const C = CryptoJS;
+import { WordArray } from './word-array.js';
+import { CryptoJS as C } from './core.js';
+import { Hasher } from './abstract-hasher.js';
 // Constants table
 const T = [];
 
@@ -182,7 +182,6 @@ const II = (a, b, c, d, x, s, t) => {
 	const n = a + (c ^ (b | ~d)) + x + t;
 	return ((n << s) | (n >>> (32 - s))) + b;
 };
-
 /**
  * Shortcut function to the hasher's object interface.
  *

@@ -1,4 +1,4 @@
-import { BlockCipherMode } from './cipher-core.js';
+import { BlockCipherMode } from './abstract-block-cipher-mode.js';
 /**
  * Cipher Feedback block mode.
  */

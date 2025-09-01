@@ -1,4 +1,6 @@
-import { CryptoJS, WordArray, Hasher } from './core.js';
+import { CryptoJS } from './core.js';
+import { WordArray } from './word-array.js';
+import { Hasher } from './abstract-hasher.js';
 // Shortcuts
 const C = CryptoJS;
 

@@ -62,8 +62,8 @@ import { UnitTestX64WordArray } from './x64-wordarray-test.mocha.js';
 
 const o = {};
 const list = [
-	UnitTestPBKDF2Profile, //OK
 	UnitTestPBKDF2, //OK
+	UnitTestPBKDF2Profile, //OK
 	UnitTestAesProfile, //OK
 	UnitTestAes, //OK
 	UnitTestBlowfish, //OK

@@ -1,5 +1,6 @@
-import { CryptoJS, Base, BufferedBlockAlgorithm, WordArray } from './core.js';
-import { BlockCipher } from './cipher-core.js';
+import { CryptoJS } from './core.js';
+import { Base } from './abstract-base.js';
+import { BlockCipher } from './abstract-block-cipher.js';
 // Shortcuts
 const C = CryptoJS;
 

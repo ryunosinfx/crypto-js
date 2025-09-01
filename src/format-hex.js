@@ -1,5 +1,5 @@
-import { Hex } from './core.js';
-import { CipherParams } from './cipher-core.js';
+import { Hex } from './enc-hex.js';
+import { CipherParams } from './cipher-params.js';
 export class HexFormatter {
 	/**
 	 * Converts the ciphertext of a cipher params object to a hexadecimally encoded string.

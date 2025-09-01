@@ -1,4 +1,4 @@
-import { CryptoJS } from '../src/crypto.js';
+import { Base } from '../src/abstract-base.js';
 const o = {
 	describe: 'describe',
 	it: 'it',
@@ -13,9 +13,6 @@ const o = {
 let chai = null;
 let mocha = null;
 let assert = null;
-const C = CryptoJS;
-const Base = C.lib.Base;
-
 function hasInstanceMethod(cls, methodName) {
 	return typeof cls?.prototype?.[methodName] === 'function';
 }

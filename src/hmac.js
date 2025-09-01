@@ -1,4 +1,6 @@
-import { WordArray, Base, Utf8 } from './core.js';
+import { Utf8 } from './enc-utf8.js';
+import { Base } from './abstract-base.js';
+import { WordArray } from './word-array.js';
 
 /**
  * HMAC algorithm.
@@ -7,16 +9,16 @@ export class HMAC extends Base {
 	/**
 	 * Initializes a newly created HMAC.
 	 *
-	 * @param {Hasher} hasher The hash algorithm to use.
+	 * @param {Hasher} hasherClass The hash algorithm to use.
 	 * @param {WordArray|string} key The secret key.
 	 *
 	 * @example
 	 *
 	 *     const hmacHasher = new CryptoJS.algo.HMAC(CryptoJS.algo.SHA256, key);
 	 */
-	constructor(hasher, keyOrigin) {
+	constructor(hasherClass, keyOrigin) {
 		super();
-		const hasherInited = new hasher(); // Init hasher
+		const hasherInited = new hasherClass(); // Init hasher
 		this._hasher = hasherInited;
 		const key = typeof keyOrigin === 'string' ? Utf8.parse(keyOrigin) : keyOrigin; // Convert string to WordArray, else assume WordArray already
 		const hasherBlockSize = hasherInited.blockSize; // Shortcuts

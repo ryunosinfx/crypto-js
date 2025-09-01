@@ -1,4 +1,4 @@
-import { WordArray } from './core.js';
+import { WordArray } from './word-array.js';
 /**
  * ISO 10126 padding strategy.
  */

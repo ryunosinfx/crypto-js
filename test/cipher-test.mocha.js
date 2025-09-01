@@ -1,5 +1,5 @@
 import { CryptoJS } from '../src/crypto.js';
-import { WordArray } from '../src/core.js';
+import { WordArray } from '../src/word-array.js';
 const o = {
 	describe: 'describe',
 	it: 'it',

@@ -1,10 +1,12 @@
 import { CryptoJS as C } from './core.js';
+export const CryptoJS = C;
+
+import { OpenSSLKdf } from './openssl-key-derivation-function.js';
 import { AES } from './aes.js';
 import { Blowfish } from './blowfish.js';
 import { Base64 } from './enc-base64.js';
 import { Base64url } from './enc-base64url.js';
 import { Utf16BE, Utf16LE } from './enc-utf16.js';
-import { EvpKDF } from './evpkdf.js';
 import { HexFormatter } from './format-hex.js';
 import { HMAC } from './hmac.js';
 import { MD5 } from './md5.js';
@@ -31,7 +33,9 @@ import { SHA384 } from './sha384.js';
 import { SHA512 } from './sha512.js';
 import { DES, TripleDES } from './tripledes.js';
 import { X64Word, X64WordArray } from './x64-core.js';
-export const CryptoJS = C;
+import { EvpKDF } from './evpkdf.js';
+EvpKDF.defaultConf.hasher = MD5;
+OpenSSLKdf.EvpKDF = EvpKDF;
 C.algo.AES = AES;
 C.algo.Blowfish = Blowfish;
 C.enc.Base64 = Base64;
