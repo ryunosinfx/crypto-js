@@ -1,10 +1,8 @@
-import { CryptoJS } from './core.js';
+import { CryptoJS as C } from './core.js';
 import { Base } from './abstract-base.js';
 import { WordArray } from './word-array.js';
 import { HMAC } from './hmac.js';
 import { SHA256 } from './sha256.js';
-// Shortcuts
-const C = CryptoJS;
 
 /**
  * Password-Based Key Derivation Function 2 algorithm.

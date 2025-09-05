@@ -9,9 +9,10 @@ import { Utf8 } from './enc-utf8.js';
  * @property {number} _minBufferSize The number of blocks that should be kept unprocessed in the buffer. Default: 0
  */
 export class BufferedBlockAlgorithm extends Base {
+	static blockSize = 512 / 32;
 	constructor(cfg) {
 		super();
-		this.blockSize = 16; // Default block size in words (512 bits)
+		this.blockSize = BufferedBlockAlgorithm.blockSize; // Default block size in words (512 bits)
 		this.cfg = Base.mixIn(this.cfg, cfg); // Apply config defaults
 		this._data = new WordArray(); // Data buffer
 		this._nDataBytes = 0; // Number of bytes in the data buffer

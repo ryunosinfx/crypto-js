@@ -36,8 +36,7 @@ export class SerializableCipher extends Base {
 	 *     const ciphertextParams = CryptoJS.lib.SerializableCipher.encrypt(CryptoJS.algo.AES, message, key, { iv: iv, format: CryptoJS.format.OpenSSL });
 	 */
 	encrypt(cipherClass, message, key, cfg) {
-		const cfgCurrent = Base.mixIn({}, this.cfg); // Apply config defaults
-		const cfgExtended = Base.mixIn(cfgCurrent, cfg); // Apply config defaults
+		const cfgExtended = Base.mixInAsNew(this.cfg, cfg); // Apply config defaults
 		// const encryptor = cipher.createEncryptor(key, cfgExtended); // Encrypt
 		const encryptor = new cipherClass(true, key, cfgExtended); // Encrypt
 		const ciphertext = encryptor.finalize(message);
@@ -74,8 +73,7 @@ export class SerializableCipher extends Base {
 	 *     const plaintext = CryptoJS.lib.SerializableCipher.decrypt(CryptoJS.algo.AES, ciphertextParams, key, { iv: iv, format: CryptoJS.format.OpenSSL });
 	 */
 	decrypt(cipherClass, ciphertext, key, cfg) {
-		const cfgCurrent = Base.mixIn({}, this.cfg); // Apply config defaults
-		const cfgExtended = Base.mixIn(cfgCurrent, cfg); // Apply config defaults
+		const cfgExtended = Base.mixInAsNew(this.cfg, cfg); // Apply config defaults
 		const ciphertextParsed = this._parse(ciphertext, cfgExtended.format); // Convert string to CipherParams
 		return new cipherClass(false, key, cfgExtended).finalize(ciphertextParsed.ciphertext); //plaintext Decrypt
 	}

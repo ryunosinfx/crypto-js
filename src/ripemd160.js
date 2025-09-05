@@ -9,11 +9,9 @@ Redistribution and use in source and binary forms, with or without modification,
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-import { CryptoJS } from './core.js';
+import { CryptoJS as C } from './core.js';
 import { WordArray } from './word-array.js';
 import { Hasher } from './abstract-hasher.js';
-// Shortcuts
-const C = CryptoJS;
 
 // Constants table
 const _zl = new WordArray([
@@ -44,11 +42,12 @@ const _hr = new WordArray([0x50a28be6, 0x5c4dd124, 0x6d703ef3, 0x7a6d76e9, 0x000
  * RIPEMD160 hash algorithm.
  */
 export class RIPEMD160 extends Hasher {
+	static initArray = [0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476, 0xc3d2e1f0];
 	constructor(cfg) {
 		super(cfg);
 	}
 	_doReset() {
-		this._hash = new WordArray([0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476, 0xc3d2e1f0]);
+		this._hash = new WordArray(RIPEMD160.initArray);
 	}
 
 	_doProcessBlock(M, offset) {

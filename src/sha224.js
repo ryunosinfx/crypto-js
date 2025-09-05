@@ -1,17 +1,14 @@
-import { CryptoJS } from './core.js';
+import { CryptoJS as C } from './core.js';
 import { WordArray } from './word-array.js';
 import { SHA256 } from './sha256.js';
-// Shortcuts
-const C = CryptoJS;
 
 /**
  * SHA-224 hash algorithm.
  */
 export class SHA224 extends SHA256 {
+	static initArray = [0xc1059ed8, 0x367cd507, 0x3070dd17, 0xf70e5939, 0xffc00b31, 0x68581511, 0x64f98fa7, 0xbefa4fa4];
 	_doReset() {
-		this._hash = new WordArray([
-			0xc1059ed8, 0x367cd507, 0x3070dd17, 0xf70e5939, 0xffc00b31, 0x68581511, 0x64f98fa7, 0xbefa4fa4,
-		]);
+		this._hash = new WordArray(SHA224.initArray);
 	}
 
 	_doFinalize() {

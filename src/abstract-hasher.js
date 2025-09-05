@@ -11,7 +11,7 @@ export class Hasher extends BufferedBlockAlgorithm {
 	/**
 	 * Configuration options.
 	 */
-
+	static blockSize = 512 / 32;
 	/**
 	 * Initializes a newly created hasher.
 	 *
@@ -23,7 +23,7 @@ export class Hasher extends BufferedBlockAlgorithm {
 	 */
 	constructor(cfg) {
 		super(cfg);
-		this.blockSize = 512 / 32;
+		this.blockSize = Hasher.blockSize;
 		this.cfg = Base.mixIn(this.cfg, cfg); // Apply config defaults
 		this.cfg = Base.mixIn(this.cfg, { keySize: this.keySize, ivSize: this.ivSize, blockSize: this.blockSize });
 		this.reset(); // Set initial values
@@ -93,9 +93,7 @@ export class Hasher extends BufferedBlockAlgorithm {
 	 *
 	 *     const SHA256 = CryptoJS.lib.Hasher._createHelper(CryptoJS.algo.SHA256);
 	 */
-	static _createHelper(hasherClass) {
-		return (message, cfg) => new hasherClass(cfg).finalize(message);
-	}
+	static _createHelper = hasherClass => (message, cfg) => new hasherClass(cfg).finalize(message);
 
 	/**
 	 * Creates a shortcut function to the HMAC's object interface.
@@ -110,7 +108,5 @@ export class Hasher extends BufferedBlockAlgorithm {
 	 *
 	 *     const HmacSHA256 = CryptoJS.lib.Hasher._createHmacHelper(CryptoJS.algo.SHA256);
 	 */
-	static _createHmacHelper(hasherClass) {
-		return (message, key) => new HMAC(hasherClass, key).finalize(message);
-	}
+	static _createHmacHelper = hasherClass => (message, key) => new HMAC(hasherClass, key).finalize(message);
 }

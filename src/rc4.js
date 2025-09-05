@@ -1,9 +1,6 @@
-import { CryptoJS } from './core.js';
+import { CryptoJS as C } from './core.js';
 import { Base } from './abstract-base.js';
 import { StreamCipher } from './abstract-stream-cipher.js';
-// Shortcuts
-const C = CryptoJS;
-
 /**
  * RC4 stream cipher algorithm.
  */
@@ -75,6 +72,9 @@ C.RC4 = StreamCipher._createHelper(RC4);
  * Modified RC4 stream cipher algorithm.
  */
 export class RC4Drop extends RC4 {
+	static defaultConf = {
+		drop: 192,
+	};
 	/**
 	 * Configuration options.
 	 *
@@ -82,9 +82,7 @@ export class RC4Drop extends RC4 {
 	 */
 	constructor(isEncryption, key, cfg) {
 		super(isEncryption, key, cfg);
-		this.cfg = Base.mixIn(this.cfg, {
-			drop: 192,
-		});
+		this.cfg = Base.mixIn(this.cfg, RC4Drop.defaultConf);
 	}
 	_doReset() {
 		super._doReset();

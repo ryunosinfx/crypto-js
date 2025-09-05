@@ -10,6 +10,8 @@ export class BlockCipher extends Cipher {
 		mode: null, //CBC,
 		padding: null, // Pkcs7,
 	};
+
+	static blockSize = 128 / 32;
 	/**
 	 * Configuration options.
 	 *
@@ -20,7 +22,7 @@ export class BlockCipher extends Cipher {
 		super(isEncryption, key, cfg);
 		this.cfg = Base.mixIn(this.cfg, cfg);
 		this.cfg = Base.mixIn(this.cfg, BlockCipher.defaultConf);
-		this.blockSize = 128 / 32;
+		this.blockSize = BlockCipher.blockSize;
 		this.cfg = Base.mixIn(this.cfg, { keySize: this.keySize, ivSize: this.ivSize, blockSize: this.blockSize });
 	}
 

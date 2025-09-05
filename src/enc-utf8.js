@@ -38,7 +38,5 @@ export class Utf8 {
 	 *
 	 *     const wordArray = CryptoJS.enc.Utf8.parse(utf8String);
 	 */
-	static parse = utf8Str => {
-		return Latin1.parse(unescape(encodeURIComponent(utf8Str)));
-	};
+	static parse = utf8Str => Latin1.parse(unescape(encodeURIComponent(utf8Str)));
 }

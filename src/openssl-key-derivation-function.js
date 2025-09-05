@@ -29,6 +29,6 @@ export class OpenSSLKdf {
 			: new OpenSSLKdf.EvpKDF({ keySize: keySize + ivSize }).compute(password, saltForUse);
 		const iv = new WordArray(key.words.slice(keySize), ivSize * 4); // Separate key and IV
 		key.sigBytes = keySize * 4;
-		return new CipherParams({ key: key, iv: iv, salt: saltForUse }); // Return params
+		return new CipherParams({ key, iv, salt: saltForUse }); // Return params
 	};
 }

@@ -1,9 +1,6 @@
-import { CryptoJS } from './core.js';
+import { CryptoJS as C } from './core.js';
 import { Base } from './abstract-base.js';
 import { BlockCipher } from './abstract-block-cipher.js';
-
-// Shortcuts
-const C = CryptoJS;
 
 // Lookup tables
 const SBOX = [];

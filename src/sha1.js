@@ -1,8 +1,6 @@
-import { CryptoJS } from './core.js';
+import { CryptoJS as C } from './core.js';
 import { WordArray } from './word-array.js';
 import { Hasher } from './abstract-hasher.js';
-// Shortcuts
-const C = CryptoJS;
 
 // Reusable object
 const W = [];
@@ -11,11 +9,12 @@ const W = [];
  * SHA-1 hash algorithm.
  */
 export class SHA1 extends Hasher {
+	static initArray = [0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476, 0xc3d2e1f0];
 	constructor(cfg) {
 		super(cfg);
 	}
 	_doReset() {
-		this._hash = new WordArray([0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476, 0xc3d2e1f0]);
+		this._hash = new WordArray(SHA1.initArray);
 	}
 
 	_doProcessBlock(M, offset) {

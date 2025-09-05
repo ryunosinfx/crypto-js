@@ -1,8 +1,6 @@
-import { CryptoJS } from './core.js';
+import { CryptoJS as C } from './core.js';
 import { WordArray } from './word-array.js';
 import { Hasher } from './abstract-hasher.js';
-// Shortcuts
-const C = CryptoJS;
 
 // Initialization and round constants tables
 const H = [];

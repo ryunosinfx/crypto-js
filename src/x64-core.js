@@ -1,9 +1,8 @@
-import { CryptoJS } from './core.js';
+import { CryptoJS as C } from './core.js';
 import { Base } from './abstract-base.js';
 import { WordArray } from './word-array.js';
 
 // Shortcuts
-const C = CryptoJS;
 const X32WordArray = WordArray;
 
 /**

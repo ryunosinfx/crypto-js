@@ -1,10 +1,8 @@
-import { CryptoJS } from './core.js';
+import { CryptoJS as C } from './core.js';
 import { Base } from './abstract-base.js';
 import { WordArray } from './word-array.js';
 import { X64Word } from './x64-core.js';
 import { Hasher } from './abstract-hasher.js';
-// Shortcuts
-const C = CryptoJS;
 
 // Constants tables
 const RHO_OFFSETS = [];
@@ -45,6 +43,9 @@ for (let i = 0; i < 25; i++) T[i] = new X64Word(); // Reusable objects for tempo
  * SHA-3 hash algorithm.
  */
 export class SHA3 extends Hasher {
+	static defaultConf = {
+		outputLength: 512,
+	};
 	/**
 	 * Configuration options.
 	 *
@@ -53,13 +54,8 @@ export class SHA3 extends Hasher {
 	 *   Only values permitted are: 224, 256, 384, 512.
 	 *   Default: 512
 	 */
-	constructor(
-		cfg = {
-			outputLength: 512,
-		}
-	) {
+	constructor(cfg = SHA3.defaultConf) {
 		super(cfg);
-		this.cfg = Base.mixIn(this.cfg, {});
 	}
 
 	_doReset() {
