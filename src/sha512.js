@@ -7,7 +7,7 @@ import { X64Word, X64WordArray } from './x64-core.js';
 const C = CryptoJS;
 
 // Constants
-const K = [
+const J = [
 	new X64Word(0x428a2f98, 0xd728ae22),
 	new X64Word(0x71374491, 0x23ef65cd),
 	new X64Word(0xb5c0fbcf, 0xec4d3b2f),
@@ -91,8 +91,8 @@ const K = [
 ];
 
 // Reusable objects
-const W = [];
-for (let i = 0; i < 80; i++) W[i] = new X64Word();
+const L = [];
+for (let i = 0; i < 80; i++) L[i] = new X64Word();
 
 /**
  * SHA-512 hash algorithm.
@@ -160,13 +160,13 @@ export class SHA512 extends Hasher {
 		// Rounds
 		for (let i = 0; i < 80; i++) {
 			let Wil, Wih;
-			const Wi = W[i]; // Shortcut
+			const Wi = L[i]; // Shortcut
 			// Extend message
 			if (i < 16) {
 				Wih = Wi.high = M[offset + i * 2] | 0;
 				Wil = Wi.low = M[offset + i * 2 + 1] | 0;
 			} else {
-				const gamma0x = W[i - 15]; // Gamma0
+				const gamma0x = L[i - 15]; // Gamma0
 				const gamma0xh = gamma0x.high;
 				const gamma0xl = gamma0x.low;
 				const gamma0h =
@@ -176,7 +176,7 @@ export class SHA512 extends Hasher {
 					((gamma0xl >>> 8) | (gamma0xh << 24)) ^
 					((gamma0xl >>> 7) | (gamma0xh << 25));
 
-				const gamma1x = W[i - 2]; // Gamma1
+				const gamma1x = L[i - 2]; // Gamma1
 				const gamma1xh = gamma1x.high;
 				const gamma1xl = gamma1x.low;
 				const gamma1h =
@@ -187,11 +187,11 @@ export class SHA512 extends Hasher {
 					((gamma1xl >>> 6) | (gamma1xh << 26));
 
 				// W[i] = gamma0 + W[i - 7] + gamma1 + W[i - 16]
-				const Wi7 = W[i - 7];
+				const Wi7 = L[i - 7];
 				const Wi7h = Wi7.high;
 				const Wi7l = Wi7.low;
 
-				const Wi16 = W[i - 16];
+				const Wi16 = L[i - 16];
 				const Wi16h = Wi16.high;
 				const Wi16l = Wi16.low;
 
@@ -216,7 +216,7 @@ export class SHA512 extends Hasher {
 			const sigma1h = ((eh >>> 14) | (el << 18)) ^ ((eh >>> 18) | (el << 14)) ^ ((eh << 23) | (el >>> 9));
 			const sigma1l = ((el >>> 14) | (eh << 18)) ^ ((el >>> 18) | (eh << 14)) ^ ((el << 23) | (eh >>> 9));
 
-			const Ki = K[i]; // t1 = h + sigma1 + ch + K[i] + W[i]
+			const Ki = J[i]; // t1 = h + sigma1 + ch + K[i] + W[i]
 			const Kih = Ki.high;
 			const Kil = Ki.low;
 

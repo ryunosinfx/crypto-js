@@ -17,29 +17,29 @@ const INV_SUB_MIX_3 = [];
 // Compute lookup tables
 const d = []; // Compute double table
 for (let i = 0; i < 256; i++) d[i] = i < 128 ? i << 1 : (i << 1) ^ 0x11b;
-let x = 0, // Walk GF(2^8)
+let xj = 0, // Walk GF(2^8)
 	xi = 0;
 for (let i = 0; i < 256; i++) {
 	const sxi = xi ^ (xi << 1) ^ (xi << 2) ^ (xi << 3) ^ (xi << 4); // Compute sbox
 	const sx = (sxi >>> 8) ^ (sxi & 0xff) ^ 0x63;
-	SBOX[x] = sx;
-	INV_SBOX[sx] = x;
-	const x2 = d[x]; // Compute multiplication
+	SBOX[xj] = sx;
+	INV_SBOX[sx] = xj;
+	const x2 = d[xj]; // Compute multiplication
 	const x4 = d[x2];
 	const x8 = d[x4];
 	const s = (d[sx] * 0x101) ^ (sx * 0x1010100); // Compute sub bytes, mix columns tables
-	SUB_MIX_0[x] = (s << 24) | (s >>> 8);
-	SUB_MIX_1[x] = (s << 16) | (s >>> 16);
-	SUB_MIX_2[x] = (s << 8) | (s >>> 24);
-	SUB_MIX_3[x] = s;
-	const t = (x8 * 0x1010101) ^ (x4 * 0x10001) ^ (x2 * 0x101) ^ (x * 0x1010100); // Compute inv sub bytes, inv mix columns tables
+	SUB_MIX_0[xj] = (s << 24) | (s >>> 8);
+	SUB_MIX_1[xj] = (s << 16) | (s >>> 16);
+	SUB_MIX_2[xj] = (s << 8) | (s >>> 24);
+	SUB_MIX_3[xj] = s;
+	const t = (x8 * 0x1010101) ^ (x4 * 0x10001) ^ (x2 * 0x101) ^ (xj * 0x1010100); // Compute inv sub bytes, inv mix columns tables
 	INV_SUB_MIX_0[sx] = (t << 24) | (t >>> 8);
 	INV_SUB_MIX_1[sx] = (t << 16) | (t >>> 16);
 	INV_SUB_MIX_2[sx] = (t << 8) | (t >>> 24);
 	INV_SUB_MIX_3[sx] = t;
-	if (!x) x = xi = 1; // Compute next counter
+	if (!xj) xj = xi = 1; // Compute next counter
 	else {
-		x = x2 ^ d[d[d[x8 ^ x2]]];
+		xj = x2 ^ d[d[d[x8 ^ x2]]];
 		xi ^= d[d[xi]];
 	}
 }

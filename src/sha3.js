@@ -1,5 +1,4 @@
 import { CryptoJS as C } from './core.js';
-import { Base } from './abstract-base.js';
 import { WordArray } from './word-array.js';
 import { X64Word } from './x64-core.js';
 import { Hasher } from './abstract-hasher.js';
@@ -8,7 +7,7 @@ import { Hasher } from './abstract-hasher.js';
 const RHO_OFFSETS = [];
 const PI_INDEXES = [];
 const ROUND_CONSTANTS = [];
-const T = [];
+const U = [];
 
 // Compute Constants
 let x = 1, // Compute rho offset constants
@@ -37,7 +36,7 @@ for (let i = 0; i < 24; i++) {
 	}
 	ROUND_CONSTANTS[i] = new X64Word(roundConstantMsw, roundConstantLsw);
 }
-for (let i = 0; i < 25; i++) T[i] = new X64Word(); // Reusable objects for temporary values
+for (let i = 0; i < 25; i++) U[i] = new X64Word(); // Reusable objects for temporary values
 
 /**
  * SHA-3 hash algorithm.
@@ -90,13 +89,13 @@ export class SHA3 extends Hasher {
 					tLsw ^= lane.low;
 				}
 				// Temporary values
-				const Tx = T[x];
+				const Tx = U[x];
 				Tx.high = tMsw;
 				Tx.low = tLsw;
 			}
 			for (let x = 0; x < 5; x++) {
-				const Tx4 = T[(x + 4) % 5]; // Shortcuts
-				const Tx1 = T[(x + 1) % 5]; // Shortcuts
+				const Tx4 = U[(x + 4) % 5]; // Shortcuts
+				const Tx1 = U[(x + 1) % 5]; // Shortcuts
 				const Tx1Msw = Tx1.high; // Shortcuts
 				const Tx1Lsw = Tx1.low; // Shortcuts
 				// Mix surrounding columns
@@ -124,11 +123,11 @@ export class SHA3 extends Hasher {
 					tMsw = (laneLsw << (rhoOffset - 32)) | (laneMsw >>> (64 - rhoOffset));
 					tLsw = (laneMsw << (rhoOffset - 32)) | (laneLsw >>> (64 - rhoOffset));
 				}
-				const TPiLane = T[PI_INDEXES[laneIndex]]; // Transpose lanes
+				const TPiLane = U[PI_INDEXES[laneIndex]]; // Transpose lanes
 				TPiLane.high = tMsw;
 				TPiLane.low = tLsw;
 			}
-			const T0 = T[0]; // Rho pi at x = y = 0
+			const T0 = U[0]; // Rho pi at x = y = 0
 			const state0 = state[0];
 			T0.high = state0.high;
 			T0.low = state0.low;
@@ -138,9 +137,9 @@ export class SHA3 extends Hasher {
 				for (let y = 0; y < 5; y++) {
 					const laneIndex = x + 5 * y; // Shortcuts
 					const lane = state[laneIndex]; // Shortcuts
-					const TLane = T[laneIndex]; // Shortcuts
-					const Tx1Lane = T[((x + 1) % 5) + 5 * y]; // Shortcuts
-					const Tx2Lane = T[((x + 2) % 5) + 5 * y]; // Shortcuts
+					const TLane = U[laneIndex]; // Shortcuts
+					const Tx1Lane = U[((x + 1) % 5) + 5 * y]; // Shortcuts
+					const Tx2Lane = U[((x + 2) % 5) + 5 * y]; // Shortcuts
 					lane.high = TLane.high ^ (~Tx1Lane.high & Tx2Lane.high); // Mix rows
 					lane.low = TLane.low ^ (~Tx1Lane.low & Tx2Lane.low); // Mix rows
 				}

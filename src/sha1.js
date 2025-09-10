@@ -3,7 +3,7 @@ import { WordArray } from './word-array.js';
 import { Hasher } from './abstract-hasher.js';
 
 // Reusable object
-const W = [];
+const V = [];
 
 /**
  * SHA-1 hash algorithm.
@@ -23,13 +23,13 @@ export class SHA1 extends Hasher {
 		// Computation
 		for (let i = 0; i < 80; i++) {
 			if (i < 16) {
-				W[i] = M[offset + i] | 0;
+				V[i] = M[offset + i] | 0;
 			} else {
-				const n = W[i - 3] ^ W[i - 8] ^ W[i - 14] ^ W[i - 16];
-				W[i] = (n << 1) | (n >>> 31);
+				const n = V[i - 3] ^ V[i - 8] ^ V[i - 14] ^ V[i - 16];
+				V[i] = (n << 1) | (n >>> 31);
 			}
 
-			let t = ((a << 5) | (a >>> 27)) + e + W[i];
+			let t = ((a << 5) | (a >>> 27)) + e + V[i];
 			t +=
 				i < 20
 					? ((b & c) | (~b & d)) + 0x5a827999
