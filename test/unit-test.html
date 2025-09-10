@@ -11,7 +11,7 @@
 		<script src="/proxy?u=unpkg.com/mocha/mocha.js"></script>
 		<script type="module">
 			// esmoduleで書く
-			import * as chai from '/proxy?u=unpkg.com/chai/chai.js'; // esmoduleでchaiをimport
+			import * as chai from '/proxy?u=cdn.jsdelivr.net/npm/chai@6.0.1/index.min.js'; // esmoduleでchaiをimport
 			import { UnitTest } from './unit-test.js'; // esmoduleでchaiをimport
 			mocha.setup('bdd');
 			mocha.checkLeaks();
