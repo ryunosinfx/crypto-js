@@ -1,5 +1,11 @@
+/**
+ * CryptoJS namespace.
+ */
+const C = { lib: {}, algo: {}, enc: {}, x64: {}, pad: {}, mode: {} };
+
+export const CryptoJS = C;
 /**Base object for prototypal inheritance.*/
-export class Base {
+class Base {
 	/**
 	 * Initializes a newly created object.
 	 * Override this method to add some logic when your objects are created.
@@ -105,7 +111,7 @@ const cryptoSecureRandomInt = () => {
  * @property {Array} words The array of 32-bit words.
  * @property {number} sigBytes The number of significant bytes in this word array.
  */
-export class WordArray extends Base {
+class WordArray extends Base {
 	static defaultEncodeHex = null;
 	/**
 	 * Initializes a newly created word array.
@@ -292,7 +298,7 @@ C.x64 = C_x64;
 /**
  * A 64-bit word.
  */
-export class X64Word extends Base {
+class X64Word extends Base {
 	/**
 	 * Initializes a newly created 64-bit word.
 	 *
@@ -481,7 +487,7 @@ export class X64Word extends Base {
  * @property {Array} words The array of CryptoJS.x64.Word objects.
  * @property {number} sigBytes The number of significant bytes in this word array.
  */
-export class X64WordArray extends Base {
+class X64WordArray extends Base {
 	/**
 	 * Initializes a newly created word array.
 	 *
@@ -551,7 +557,7 @@ export class X64WordArray extends Base {
 /**
  * Base64 encoding strategy.
  */
-export class Base64 {
+class Base64 {
 	static _map = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
 	static _reverseMap = []; // Reverse map for Base64 decoding
 	/**
@@ -629,7 +635,7 @@ Base64.init(); // Initialize the reverse map on load
 /**
  * Base64url encoding strategy.
  */
-export class Base64url {
+class Base64url {
 	static _map = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
 	static _safe_map = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
 	static _reverseMap = []; // Reverse map for Base64url decoding
@@ -723,7 +729,7 @@ Base64url.init();
 /**
  * Latin1 encoding strategy.
  */
-export class Latin1 {
+class Latin1 {
 	static latin1Chars = [];
 	/**
 	 * Converts a word array to a Latin1 string.
@@ -774,7 +780,7 @@ export class Latin1 {
 /**
  * UTF-8 encoding strategy.
  */
-export class Utf8 {
+class Utf8 {
 	/**
 	 * Converts a word array to a UTF-8 string.
 	 *
@@ -815,7 +821,7 @@ export class Utf8 {
 /**
  * Hex encoding strategy.
  */
-export class Hex {
+class Hex {
 	static hexChars = [];
 	/**
 	 * Converts a word array to a hex string.
@@ -871,7 +877,7 @@ export class Hex {
  *
  * @property {number} _minBufferSize The number of blocks that should be kept unprocessed in the buffer. Default: 0
  */
-export class BufferedBlockAlgorithm extends Base {
+class BufferedBlockAlgorithm extends Base {
 	static blockSize = 512 / 32;
 	constructor(cfg) {
 		super();
@@ -973,7 +979,7 @@ export class BufferedBlockAlgorithm extends Base {
 /**
  * HMAC algorithm.
  */
-export class HMAC extends Base {
+class HMAC extends Base {
 	/**
 	 * Initializes a newly created HMAC.
 	 *
@@ -1065,7 +1071,7 @@ export class HMAC extends Base {
  *
  * @property {number} blockSize The number of 32-bit words this hasher operates on. Default: 16 (512 bits)
  */
-export class Hasher extends BufferedBlockAlgorithm {
+class Hasher extends BufferedBlockAlgorithm {
 	/**
 	 * Configuration options.
 	 */
@@ -1177,7 +1183,7 @@ export class Hasher extends BufferedBlockAlgorithm {
  * @property {number} _ENC_XFORM_MODE A constant representing encryption mode.
  * @property {number} _DEC_XFORM_MODE A constant representing decryption mode.
  */
-export class Cipher extends BufferedBlockAlgorithm {
+class Cipher extends BufferedBlockAlgorithm {
 	/**
 	 * Configuration options.
 	 *
@@ -1353,7 +1359,7 @@ export class Cipher extends BufferedBlockAlgorithm {
  *
  * @property {number} blockSize The number of 32-bit words this cipher operates on. Default: 1 (32 bits)
  */
-export class StreamCipher extends Cipher {
+class StreamCipher extends Cipher {
 	static addConf = { keySize: null, ivSize: null, blockSize: null };
 	constructor(isEncryption, key, cfg) {
 		super(isEncryption, key, cfg);
@@ -1372,7 +1378,7 @@ export class StreamCipher extends Cipher {
 /**
  * Abstract base block cipher mode template.
  */
-export class BlockCipherMode extends Base {
+class BlockCipherMode extends Base {
 	/**
 	 * Initializes a newly created mode.
 	 *
@@ -1427,7 +1433,7 @@ export class BlockCipherMode extends Base {
  *
  * @property {number} blockSize The number of 32-bit words this cipher operates on. Default: 4 (128 bits)
  */
-export class BlockCipher extends Cipher {
+class BlockCipher extends Cipher {
 	static defaultConf = {
 		mode: null, //CBC,
 		padding: null, // Pkcs7,
@@ -1497,7 +1503,7 @@ export class BlockCipher extends Cipher {
  * @property {number} blockSize The block size of the cipher.
  * @property {Format} formatter The default formatting strategy to convert this cipher params object to a string.
  */
-export class CipherParams extends Base {
+class CipherParams extends Base {
 	static defaultValue = {
 		ciphertext: new WordArray(),
 		key: new WordArray(),
@@ -1556,7 +1562,7 @@ export class CipherParams extends Base {
 /**
  * PKCS #5/7 padding strategy.
  */
-export class Pkcs7 {
+class Pkcs7 {
 	/**
 	 * Pads data using the algorithm defined in PKCS #5/7.
 	 *
@@ -1595,11 +1601,11 @@ export class Pkcs7 {
 		data.sigBytes -= nPaddingBytes; // Remove padding
 	}
 }
-import { Base64 } from './enc-base64.js';
+
 /**
  * OpenSSL formatting strategy.
  */
-export class OpenSSLFormatter {
+class OpenSSLFormatter {
 	/**
 	 * Converts a cipher params object to an OpenSSL-compatible string.
 	 *
@@ -1651,7 +1657,7 @@ export class OpenSSLFormatter {
 /**
  * A cipher wrapper that returns ciphertext as a serializable cipher params object.
  */
-export class SerializableCipher extends Base {
+class SerializableCipher extends Base {
 	static defaultConf = {
 		format: null, //OpenSSLFormatter
 	};
@@ -1749,7 +1755,7 @@ export class SerializableCipher extends Base {
 /**
  * OpenSSL key derivation function.
  */
-export class OpenSSLKdf {
+class OpenSSLKdf {
 	static EvpKDF = null;
 	/**
 	 * Derives a key and IV from a password.
@@ -1783,7 +1789,7 @@ export class OpenSSLKdf {
  * A serializable cipher wrapper that derives the key from a password,
  * and returns ciphertext as a serializable cipher params object.
  */
-export class PasswordBasedCipher extends SerializableCipher {
+class PasswordBasedCipher extends SerializableCipher {
 	static defaultConf = {
 		kdf: null, //OpenSSLKdf
 	};
@@ -1870,7 +1876,7 @@ export class PasswordBasedCipher extends SerializableCipher {
  * Abstract base CBC mode.
  * CBC encryptor.
  */
-export class Encryptor extends BlockCipherMode {
+class Encryptor extends BlockCipherMode {
 	constructor(cipher, iv) {
 		super(cipher, iv);
 		this._prevBlock = iv ? iv.slice(0) : []; // Remember previous block
@@ -1897,7 +1903,7 @@ export class Encryptor extends BlockCipherMode {
 /**
  * CBC decryptor.
  */
-export class Decryptor extends BlockCipherMode {
+class Decryptor extends BlockCipherMode {
 	constructor(cipher, iv) {
 		super(cipher, iv);
 		this._prevBlock = iv ? iv.slice(0) : []; // Remember previous block
@@ -1921,7 +1927,7 @@ export class Decryptor extends BlockCipherMode {
 		this._prevBlock = thisBlock; // This block becomes the previous block
 	}
 }
-export class CBC extends BlockCipherMode {
+class CBC extends BlockCipherMode {
 	constructor(cipher, iv) {
 		super(cipher, iv);
 	}
@@ -1957,13 +1963,6 @@ BlockCipher.defaultConf.padding = Pkcs7;
 // 			return subtype;
 // 		};
 // 	})();
-
-/**
- * CryptoJS namespace.
- */
-const C = { lib: {}, algo: {}, enc: {}, x64: {}, pad: {}, mode: {} };
-
-export const CryptoJS = C;
 /**
  * Library namespace.
  */
@@ -1977,36 +1976,15 @@ WordArray.defaultEncodeHex = Hex;
 const C_enc = { Utf8, Latin1, Hex }; // Create C_enc namespace
 C.enc = C_enc; // Export C_enc
 C_lib.BufferedBlockAlgorithm = BufferedBlockAlgorithm; // Export BufferedBlockAlgorithm
-
 const base = new Base();
 C_lib.Base = base; // Export Base
 C_lib.Hasher = Hasher; // Export Hasher
-/**
- * Algorithm namespace.
- */
-C_lib.Base = Base;
-/**
- * Cipher core components.
- */
-CryptoJS.lib.Cipher;
-
-/**
- * Mode namespace.
- */
-C.mode = { CBC };
-/**
- * Padding namespace.
- */
-C.pad = { Pkcs7 };
-
-/**
- * Format namespace.
- */
-C.format = { OpenSSL: OpenSSLFormatter };
-/**
- * Key derivation function namespace.
- */
-C.kdf = { OpenSSL: OpenSSLKdf };
+C_lib.Base = Base; //Algorithm namespace.
+CryptoJS.lib.Cipher; //Cipher core components.
+C.mode = { CBC }; //Mode namespace.
+C.pad = { Pkcs7 }; //Padding namespace.
+C.format = { OpenSSL: OpenSSLFormatter }; //Format namespace.
+C.kdf = { OpenSSL: OpenSSLKdf }; // Key derivation function namespace.
 C_lib.Cipher = Cipher;
 C_lib.StreamCipher = StreamCipher;
 C_lib.BlockCipherMode = BlockCipherMode;
@@ -2064,7 +2042,7 @@ const RCON = [0x00, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36];
 /**
  * AES block cipher algorithm.
  */
-export class AES extends BlockCipher {
+class AES extends BlockCipher {
 	constructor(isEncryption, key, cfg) {
 		super(isEncryption, key, cfg);
 		this.cfg = Base.mixIn(this.cfg, cfg);
@@ -2481,7 +2459,7 @@ const BlowFishInit = (ctx, key, keysize) => {
 /**
  * Blowfish block cipher algorithm.
  */
-export class Blowfish extends BlockCipher {
+class Blowfish extends BlockCipher {
 	static blockSize = 64 / 32;
 	static keySize = 128 / 32;
 	static ivSize = 64 / 32;
@@ -2530,7 +2508,7 @@ C.Blowfish = BlockCipher._createHelper(Blowfish);
 /**
  * UTF-16 BE encoding strategy.
  */
-export class Utf16BE {
+class Utf16BE {
 	/**
 	 * Converts a word array to a UTF-16 BE string.
 	 *
@@ -2576,7 +2554,7 @@ export class Utf16BE {
 /**
  * UTF-16 LE encoding strategy.
  */
-export class Utf16LE {
+class Utf16LE {
 	/**
 	 * Converts a word array to a UTF-16 LE string.
 	 *
@@ -2624,7 +2602,7 @@ export class Utf16LE {
 	};
 }
 const swapEndian = word => ((word << 8) & 0xff00ff00) | ((word >>> 8) & 0x00ff00ff);
-export class HexFormatter {
+class HexFormatter {
 	/**
 	 * Converts the ciphertext of a cipher params object to a hexadecimally encoded string.
 	 *
@@ -2664,7 +2642,7 @@ for (let i = 0; i < 64; i++) T[i] = (Math.abs(Math.sin(i + 1)) * 0x100000000) | 
 /**
  * MD5 hash algorithm.
  */
-export class MD5 extends Hasher {
+class MD5 extends Hasher {
 	constructor(cfg) {
 		super(cfg);
 	}
@@ -2866,7 +2844,7 @@ C.MD5 = Hasher._createHelper(MD5);
  *
  *     const hmac = CryptoJS.HmacMD5(message, key);
  */
-export const HmacMD5 = Hasher._createHmacHelper(MD5);
+const HmacMD5 = Hasher._createHmacHelper(MD5);
 C.HmacMD5 = HmacMD5;
 /**
  * Cipher Feedback block mode.
@@ -2879,13 +2857,13 @@ const generateKeystreamAndEncrypt = (self, words, offset, blockSize, cipher) => 
 	cipher.encryptBlock(keystream, 0);
 	for (let i = 0; i < blockSize; i++) words[offset + i] ^= keystream[i]; // Encrypt
 };
-export class CFB extends BlockCipherMode {
+class CFB extends BlockCipherMode {
 	constructor(cipher, iv) {
 		super(cipher, iv);
 		this._prevBlock = iv ? iv.slice(0) : []; // Remember previous block
 	}
 }
-class Decryptor extends CFB {
+class DecryptorCFB extends CFB {
 	constructor(cipher, iv) {
 		super(cipher, iv);
 	}
@@ -2897,7 +2875,7 @@ class Decryptor extends CFB {
 		this._prevBlock = thisBlock; // This block becomes the previous block
 	}
 }
-class Encryptor extends CFB {
+class EncryptorCFB extends CFB {
 	constructor(cipher, iv) {
 		super(cipher, iv);
 	}
@@ -2908,9 +2886,9 @@ class Encryptor extends CFB {
 		this._prevBlock = words.slice(offset, offset + blockSize); // Remember this block to use with next block
 	}
 }
-CFB.Encryptor = Encryptor;
+CFB.Encryptor = EncryptorCFB;
 
-CFB.Decryptor = Decryptor;
+CFB.Decryptor = DecryptorCFB;
 /** @preserve
  * Counter block mode compatible with  Dr Brian Gladman fileenc.c
  * derived from CryptoJS.mode.CTR
@@ -2943,14 +2921,13 @@ const incCounter = counter => {
 	if ((counter[0] = incWord(counter[0])) === 0) counter[1] = incWord(counter[1]); // encr_data in fileenc.c from  Dr Brian Gladman's counts only with DWORD j < 8
 	return counter;
 };
-
-export class CTRGladman extends BlockCipherMode {
+class CTRGladman extends BlockCipherMode {
 	constructor(cipher, iv) {
 		super(cipher, iv);
 	}
 }
 
-class Encryptor extends CTRGladman {
+class EncryptorCTRGladman extends CTRGladman {
 	constructor(cipher, iv) {
 		super(cipher, iv);
 	}
@@ -2967,20 +2944,18 @@ class Encryptor extends CTRGladman {
 	}
 }
 
-CTRGladman.Encryptor = Encryptor;
-CTRGladman.Decryptor = Encryptor;
+CTRGladman.Encryptor = EncryptorCTRGladman;
+CTRGladman.Decryptor = EncryptorCTRGladman;
 
-/**
- * Counter block mode.
- */
+/** Counter block mode.  */
 
-export class CTR extends BlockCipherMode {
+class CTR extends BlockCipherMode {
 	constructor(cipher, iv) {
 		super(cipher, iv);
 	}
 }
 
-class Encryptor extends CTR {
+class EncryptorCTR extends CTR {
 	constructor(cipher, iv) {
 		super(cipher, iv);
 	}
@@ -2997,20 +2972,18 @@ class Encryptor extends CTR {
 		for (let i = 0; i < blockSize; i++) words[offset + i] ^= keystream[i]; // Encrypt
 	}
 }
-CTR.Encryptor = Encryptor;
-CTR.Decryptor = Encryptor;
+CTR.Encryptor = EncryptorCTR;
+CTR.Decryptor = EncryptorCTR;
 
-/**
- * Electronic Codebook block mode.
- */
+/**Electronic Codebook block mode. */
 
-export class ECB extends BlockCipherMode {
+class ECB extends BlockCipherMode {
 	constructor(cipher, iv) {
 		super(cipher, iv);
 	}
 }
 
-class Encryptor extends ECB {
+class EncryptorECB extends ECB {
 	constructor(cipher, iv) {
 		super(cipher, iv);
 	}
@@ -3018,7 +2991,7 @@ class Encryptor extends ECB {
 		this._cipher.encryptBlock(words, offset);
 	}
 }
-class Decryptor extends ECB {
+class DecryptorECB extends ECB {
 	constructor(cipher, iv) {
 		super(cipher, iv);
 	}
@@ -3026,20 +2999,18 @@ class Decryptor extends ECB {
 		this._cipher.decryptBlock(words, offset);
 	}
 }
-ECB.Encryptor = Encryptor;
-ECB.Decryptor = Decryptor;
+ECB.Encryptor = EncryptorECB;
+ECB.Decryptor = DecryptorECB;
 
-/**
- * Output Feedback block mode.
- */
+/** Output Feedback block mode.  */
 
-export class OFB extends BlockCipherMode {
+class OFB extends BlockCipherMode {
 	constructor(cipher, iv) {
 		super(cipher, iv);
 	}
 	static Decryptor = null;
 }
-class Encryptor extends OFB {
+class EncryptorOFB extends OFB {
 	constructor(cipher, iv) {
 		super(cipher, iv);
 	}
@@ -3054,12 +3025,10 @@ class Encryptor extends OFB {
 		for (let i = 0; i < blockSize; i++) words[offset + i] ^= keystream[i]; // Encrypt
 	}
 }
-OFB.Encryptor = Encryptor;
-OFB.Decryptor = Encryptor;
-/**
- * ANSI X.923 padding strategy.
- */
-export class AnsiX923 {
+OFB.Encryptor = EncryptorOFB;
+OFB.Decryptor = EncryptorOFB;
+/** ANSI X.923 padding strategy. */
+class AnsiX923 {
 	static pad = (data, blockSize) => {
 		const dataSigBytes = data.sigBytes; // Shortcuts
 		const blockSizeBytes = blockSize * 4; // Shortcuts
@@ -3076,10 +3045,8 @@ export class AnsiX923 {
 	};
 }
 
-/**
- * ISO 10126 padding strategy.
- */
-export class Iso10126 {
+/** ISO 10126 padding strategy.  */
+class Iso10126 {
 	static pad = (data, blockSize) => {
 		const blockSizeBytes = blockSize * 4; // Shortcut
 		const nPaddingBytes = blockSizeBytes - (data.sigBytes % blockSizeBytes); // Count padding bytes
@@ -3093,10 +3060,8 @@ export class Iso10126 {
 		data.sigBytes -= nPaddingBytes; // Remove padding
 	};
 }
-/**
- * Zero padding strategy.
- */
-export class ZeroPadding {
+/** Zero padding strategy.  */
+class ZeroPadding {
 	static pad = (data, blockSize) => {
 		const blockSizeBytes = blockSize * 4; // Shortcut
 		data.clamp(); // Pad
@@ -3114,10 +3079,8 @@ export class ZeroPadding {
 	};
 }
 
-/**
- * ISO/IEC 9797-1 Padding Method 2.
- */
-export class Iso97971 {
+/**ISO/IEC 9797-1 Padding Method 2. */
+class Iso97971 {
 	static initArray = [0x80000000];
 	static pad = (data, blockSize) => {
 		data.concat(new WordArray(Iso97971.initArray, 1)); // Add 0x80 byte
@@ -3129,20 +3092,17 @@ export class Iso97971 {
 		data.sigBytes--; // Remove one more byte -- the 0x80 byte
 	};
 }
-/**
- * A noop padding strategy.
- */
-export class NoPadding {
+/** A noop padding strategy. */
+class NoPadding {
 	static pad = () => {};
 	static unpad = () => {};
 }
 
 // Initialization and round constants tables
-const H = [];
-const K = [];
+const H = [],
+	K = [];
 
 // Compute constants
-
 const isPrime = n => {
 	const sqrtN = Math.sqrt(n);
 	for (let factor = 2; factor <= sqrtN; factor++) if (!(n % factor)) return false;
@@ -3163,10 +3123,8 @@ while (nPrime < 64) {
 // Reusable object
 const W = [];
 
-/**
- * SHA-256 hash algorithm.
- */
-export class SHA256 extends Hasher {
+/**SHA-256 hash algorithm. */
+class SHA256 extends Hasher {
 	constructor(cfg) {
 		super(cfg);
 	}
@@ -3282,10 +3240,8 @@ C.SHA256 = Hasher._createHelper(SHA256);
  */
 C.HmacSHA256 = Hasher._createHmacHelper(SHA256);
 
-/**
- * Password-Based Key Derivation Function 2 algorithm.
- */
-export class PBKDF2 extends Base {
+/** Password-Based Key Derivation Function 2 algorithm. ----------------------------------------- */
+class PBKDF2 extends Base {
 	/**
 	 * Configuration options.
 	 *
@@ -3391,7 +3347,7 @@ const G = [];
  * This error doesn't affect the cipher's security,
  * but it does affect its compatibility with other implementations.
  */
-export class RabbitLegacy extends StreamCipher {
+class RabbitLegacy extends StreamCipher {
 	static blockSize = 128 / 32;
 	static ivSize = 64 / 32;
 	constructor(isEncryption, key, cfg) {
@@ -3518,11 +3474,133 @@ export class RabbitLegacy extends StreamCipher {
  *     const plaintext  = CryptoJS.RabbitLegacy.decrypt(ciphertext, key, cfg);
  */
 C.RabbitLegacy = StreamCipher._createHelper(RabbitLegacy);
+/**
+ * Rabbit stream cipher algorithm
+ */
+class Rabbit extends StreamCipher {
+	static blockSize = 128 / 32;
+	static ivSize = 64 / 32;
+	constructor(isEncryption, key, cfg) {
+		super(isEncryption, key, cfg);
+		this.cfg = Base.mixIn(this.cfg, cfg);
+		this.blockSize = Rabbit.blockSize;
+		this.ivSize = Rabbit.ivSize;
+		this.cfg = Base.mixIn(this.cfg, { keySize: this.keySize, ivSize: this.ivSize, blockSize: this.blockSize });
+		this.reset();
+	}
+	_doReset() {
+		const K = this._key.words; // ShortcutsC_algo.Rabbit =
+		const iv = this.cfg.iv; // ShortcutsC_algo.Rabbit =
+		for (let i = 0; i < 4; i++)
+			K[i] = (((K[i] << 8) | (K[i] >>> 24)) & 0x00ff00ff) | (((K[i] << 24) | (K[i] >>> 8)) & 0xff00ff00); // Swap endian
+		// Generate initial state values
+		const X = [
+			K[0],
+			(K[3] << 16) | (K[2] >>> 16),
+			K[1],
+			(K[0] << 16) | (K[3] >>> 16),
+			K[2],
+			(K[1] << 16) | (K[0] >>> 16),
+			K[3],
+			(K[2] << 16) | (K[1] >>> 16),
+		];
+		this._X = X;
+		// Generate initial counter values
+		const C = [
+			(K[2] << 16) | (K[2] >>> 16),
+			(K[0] & 0xffff0000) | (K[1] & 0x0000ffff),
+			(K[3] << 16) | (K[3] >>> 16),
+			(K[1] & 0xffff0000) | (K[2] & 0x0000ffff),
+			(K[0] << 16) | (K[0] >>> 16),
+			(K[2] & 0xffff0000) | (K[3] & 0x0000ffff),
+			(K[1] << 16) | (K[1] >>> 16),
+			(K[3] & 0xffff0000) | (K[0] & 0x0000ffff),
+		];
+		this._C = C;
+		this._b = 0; // Carry bit
+		for (let i = 0; i < 4; i++) this.nextState(); // Iterate the system four times
+		for (let i = 0; i < 8; i++) C[i] ^= X[(i + 4) & 7]; // Modify the counters
+		// IV setup
+		if (iv) {
+			const IV = iv.words; // Shortcuts
+			const IV_0 = IV[0]; // Shortcuts
+			const IV_1 = IV[1]; // Shortcuts
+			const i0 = (((IV_0 << 8) | (IV_0 >>> 24)) & 0x00ff00ff) | (((IV_0 << 24) | (IV_0 >>> 8)) & 0xff00ff00); // Generate four subvectors
+			const i2 = (((IV_1 << 8) | (IV_1 >>> 24)) & 0x00ff00ff) | (((IV_1 << 24) | (IV_1 >>> 8)) & 0xff00ff00); // Generate four subvectors
+			const i1 = (i0 >>> 16) | (i2 & 0xffff0000); // Generate four subvectors
+			const i3 = (i2 << 16) | (i0 & 0x0000ffff); // Generate four subvectors
+
+			// Modify counter values
+			C[0] ^= i0;
+			C[1] ^= i1;
+			C[2] ^= i2;
+			C[3] ^= i3;
+			C[4] ^= i0;
+			C[5] ^= i1;
+			C[6] ^= i2;
+			C[7] ^= i3;
+			for (let i = 0; i < 4; i++) this.nextState(); // Iterate the system four times
+		}
+	}
+
+	_doProcessBlock(M, offset) {
+		const X = this._X; // Shortcut
+		this.nextState(); // Iterate the system
+		S[0] = X[0] ^ (X[5] >>> 16) ^ (X[3] << 16); // Generate four keystream words
+		S[1] = X[2] ^ (X[7] >>> 16) ^ (X[5] << 16); // Generate four keystream words
+		S[2] = X[4] ^ (X[1] >>> 16) ^ (X[7] << 16); // Generate four keystream words
+		S[3] = X[6] ^ (X[3] >>> 16) ^ (X[1] << 16); // Generate four keystream words
+		for (let i = 0; i < 4; i++) {
+			S[i] = (((S[i] << 8) | (S[i] >>> 24)) & 0x00ff00ff) | (((S[i] << 24) | (S[i] >>> 8)) & 0xff00ff00); // Swap endian
+			M[offset + i] ^= S[i]; // Encrypt
+		}
+	}
+	nextState() {
+		const X = this._X; // Shortcuts
+		const C = this._C; // Shortcuts
+		for (let i = 0; i < 8; i++) C_[i] = C[i]; // Save old counter values
+		// Calculate new counter values
+		C[0] = (C[0] + 0x4d34d34d + this._b) | 0;
+		C[1] = (C[1] + 0xd34d34d3 + (C[0] >>> 0 < C_[0] >>> 0 ? 1 : 0)) | 0;
+		C[2] = (C[2] + 0x34d34d34 + (C[1] >>> 0 < C_[1] >>> 0 ? 1 : 0)) | 0;
+		C[3] = (C[3] + 0x4d34d34d + (C[2] >>> 0 < C_[2] >>> 0 ? 1 : 0)) | 0;
+		C[4] = (C[4] + 0xd34d34d3 + (C[3] >>> 0 < C_[3] >>> 0 ? 1 : 0)) | 0;
+		C[5] = (C[5] + 0x34d34d34 + (C[4] >>> 0 < C_[4] >>> 0 ? 1 : 0)) | 0;
+		C[6] = (C[6] + 0x4d34d34d + (C[5] >>> 0 < C_[5] >>> 0 ? 1 : 0)) | 0;
+		C[7] = (C[7] + 0xd34d34d3 + (C[6] >>> 0 < C_[6] >>> 0 ? 1 : 0)) | 0;
+		this._b = C[7] >>> 0 < C_[7] >>> 0 ? 1 : 0;
+		// Calculate the g-values
+		for (let i = 0; i < 8; i++) {
+			const gx = X[i] + C[i];
+			const ga = gx & 0xffff; // Construct high and low argument for squaring
+			const gb = gx >>> 16; // Construct high and low argument for squaring
+			const gh = ((((ga * ga) >>> 17) + ga * gb) >>> 15) + gb * gb; // Calculate high and low result of squaring
+			const gl = (((gx & 0xffff0000) * gx) | 0) + (((gx & 0x0000ffff) * gx) | 0); // Calculate high and low result of squaring
+			G[i] = gh ^ gl; // High XOR low
+		}
+		// Calculate new state values
+		X[0] = (G[0] + ((G[7] << 16) | (G[7] >>> 16)) + ((G[6] << 16) | (G[6] >>> 16))) | 0;
+		X[1] = (G[1] + ((G[0] << 8) | (G[0] >>> 24)) + G[7]) | 0;
+		X[2] = (G[2] + ((G[1] << 16) | (G[1] >>> 16)) + ((G[0] << 16) | (G[0] >>> 16))) | 0;
+		X[3] = (G[3] + ((G[2] << 8) | (G[2] >>> 24)) + G[1]) | 0;
+		X[4] = (G[4] + ((G[3] << 16) | (G[3] >>> 16)) + ((G[2] << 16) | (G[2] >>> 16))) | 0;
+		X[5] = (G[5] + ((G[4] << 8) | (G[4] >>> 24)) + G[3]) | 0;
+		X[6] = (G[6] + ((G[5] << 16) | (G[5] >>> 16)) + ((G[4] << 16) | (G[4] >>> 16))) | 0;
+		X[7] = (G[7] + ((G[6] << 8) | (G[6] >>> 24)) + G[5]) | 0;
+	}
+}
 
 /**
- * RC4 stream cipher algorithm.
+ * Shortcut functions to the cipher's object interface.
+ *
+ * @example
+ *
+ *     const ciphertext = CryptoJS.Rabbit.encrypt(message, key, cfg);
+ *     const plaintext  = CryptoJS.Rabbit.decrypt(ciphertext, key, cfg);
  */
-export class RC4 extends StreamCipher {
+C.Rabbit = StreamCipher._createHelper(Rabbit);
+/** RC4 stream cipher algorithm. ------------------------------------------------------------- */
+class RC4 extends StreamCipher {
 	static keySize = 256 / 32;
 	static ivSize = 0;
 	constructor(isEncryption, key, cfg) {
@@ -3586,10 +3664,8 @@ export class RC4 extends StreamCipher {
  */
 C.RC4 = StreamCipher._createHelper(RC4);
 
-/**
- * Modified RC4 stream cipher algorithm.
- */
-export class RC4Drop extends RC4 {
+/**Modified RC4 stream cipher algorithm.---------------------------------------------------------- */
+class RC4Drop extends RC4 {
 	static defaultConf = {
 		drop: 192,
 	};
@@ -3628,10 +3704,6 @@ Redistribution and use in source and binary forms, with or without modification,
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-import { CryptoJS as C } from './core.js';
-import { WordArray } from './word-array.js';
-import { Hasher } from './abstract-hasher.js';
-
 // Constants table
 const _zl = new WordArray([
 	0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 7, 4, 13, 1, 10, 6, 15, 3, 12, 0, 9, 5, 2, 14, 11, 8, 3, 10,
@@ -3657,10 +3729,8 @@ const _sr = new WordArray([
 const _hl = new WordArray([0x00000000, 0x5a827999, 0x6ed9eba1, 0x8f1bbcdc, 0xa953fd4e]);
 const _hr = new WordArray([0x50a28be6, 0x5c4dd124, 0x6d703ef3, 0x7a6d76e9, 0x00000000]);
 
-/**
- * RIPEMD160 hash algorithm.
- */
-export class RIPEMD160 extends Hasher {
+/** RIPEMD160 hash algorithm.  */
+class RIPEMD160 extends Hasher {
 	static initArray = [0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476, 0xc3d2e1f0];
 	constructor(cfg) {
 		super(cfg);
@@ -3813,10 +3883,8 @@ C.HmacRIPEMD160 = Hasher._createHmacHelper(RIPEMD160);
 // Reusable object
 const V = [];
 
-/**
- * SHA-1 hash algorithm.
- */
-export class SHA1 extends Hasher {
+/**SHA-1 hash algorithm.------------------------------------------------------------------------------------- */
+class SHA1 extends Hasher {
 	static initArray = [0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476, 0xc3d2e1f0];
 	constructor(cfg) {
 		super(cfg);
@@ -3949,7 +4017,7 @@ for (let i = 0; i < 25; i++) U[i] = new X64Word(); // Reusable objects for tempo
 /**
  * SHA-3 hash algorithm.
  */
-export class SHA3 extends Hasher {
+class SHA3 extends Hasher {
 	static defaultConf = {
 		outputLength: 512,
 	};
@@ -4132,7 +4200,7 @@ C.HmacSHA3 = Hasher._createHmacHelper(SHA3);
 /**
  * SHA-224 hash algorithm.
  */
-export class SHA224 extends SHA256 {
+class SHA224 extends SHA256 {
 	static initArray = [0xc1059ed8, 0x367cd507, 0x3070dd17, 0xf70e5939, 0xffc00b31, 0x68581511, 0x64f98fa7, 0xbefa4fa4];
 	_doReset() {
 		this._hash = new WordArray(SHA224.initArray);
@@ -4267,7 +4335,7 @@ for (let i = 0; i < 80; i++) L[i] = new X64Word();
 /**
  * SHA-512 hash algorithm.
  */
-export class SHA512 extends Hasher {
+class SHA512 extends Hasher {
 	constructor(cfg) {
 		super(cfg);
 		this.blockSize = 1024 / 32;
@@ -4493,7 +4561,7 @@ C.HmacSHA512 = SHA512._createHmacHelper(SHA512);
 /**
  * SHA-384 hash algorithm.
  */
-export class SHA384 extends SHA512 {
+class SHA384 extends SHA512 {
 	_doReset() {
 		this._hash = new X64WordArray([
 			new X64Word(0xcbbb9d5d, 0xc1059ed8),
@@ -5356,9 +5424,7 @@ export class EvpKDF extends Base {
  *     const key = CryptoJS.EvpKDF(password, salt, { keySize: 8 });
  *     const key = CryptoJS.EvpKDF(password, salt, { keySize: 8, iterations: 1000 });
  */
-C.EvpKDF = (password, salt, cfg) => {
-	return new EvpKDF(cfg).compute(password, salt);
-};
+C.EvpKDF = (password, salt, cfg) => new EvpKDF(cfg).compute(password, salt);
 
 EvpKDF.defaultConf.hasher = MD5;
 OpenSSLKdf.EvpKDF = EvpKDF;
