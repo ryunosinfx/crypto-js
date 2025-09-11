@@ -1,4 +1,5 @@
-import { Base } from '../src/abstract-base.js';
+import { CryptoJS } from '../src/crypto.js';
+const Base = CryptoJS.lib.Base;
 const o = {
 	describe: 'describe',
 	it: 'it',
