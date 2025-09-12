@@ -15,7 +15,7 @@
 			import { UnitTest } from './unit-test.js'; // esmoduleでchaiをimport
 			mocha.setup('bdd');
 			mocha.checkLeaks();
-			UnitTest.init(chai, mocha, describe, it, before, after, beforeEach, afterEach); // UnitTestクラスの初期化
+			await UnitTest.init(chai, mocha, describe, it, before, after, beforeEach, afterEach); // UnitTestクラスの初期化
 			UnitTest.run(); // UnitTestクラスの実行
 		</script>
 	</body>

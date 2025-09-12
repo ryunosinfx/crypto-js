@@ -1,4 +1,6 @@
-import { CryptoJS } from '../src/crypto.js';
+import { TestConfig } from './test-config.js';
+const module = await import(TestConfig.CryptoJSPath);
+const CryptoJS = module.CryptoJS;
 const Base = CryptoJS.lib.Base;
 const o = {
 	describe: 'describe',
@@ -19,6 +21,7 @@ function hasInstanceMethod(cls, methodName) {
 }
 
 export class UnitTestBase {
+	static C = CryptoJS;
 	static init(chaiM, mochaM, describeM, itM, beforeM, afterM, beforeEachM, afterEachM) {
 		if (chaiM) {
 			chai = chaiM;

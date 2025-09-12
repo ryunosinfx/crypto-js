@@ -1,4 +1,6 @@
-import { CryptoJS } from '../src/crypto.js';
+import { TestConfig } from './test-config.js';
+const module = await import(TestConfig.CryptoJSPath);
+const CryptoJS = module.CryptoJS;
 const WordArray = CryptoJS.lib.WordArray;
 const o = {
 	describe: 'describe',
@@ -17,6 +19,7 @@ let assert = null;
 const C = CryptoJS;
 
 export class UnitTestCipher {
+	static C = C;
 	static init(chaiM, mochaM, describeM, itM, beforeM, afterM, beforeEachM, afterEachM) {
 		if (chaiM) {
 			chai = chaiM;

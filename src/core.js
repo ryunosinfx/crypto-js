@@ -42,7 +42,7 @@ BlockCipher.defaultConf.padding = Pkcs7;
 /**
  * CryptoJS namespace.
  */
-const C = { lib: {}, algo: {}, enc: {}, x64: {}, pad: {}, mode: {} };
+const C = { lib: {}, algo: {}, enc: {}, x64: {}, pad: {}, mode: {}, isUnited: false };
 
 export const CryptoJS = C;
 /**

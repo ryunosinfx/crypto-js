@@ -1,4 +1,6 @@
-import { CryptoJS } from '../src/crypto.js';
+import { TestConfig } from './test-config.js';
+const module = await import(TestConfig.CryptoJSPath);
+const CryptoJS = module.CryptoJS;
 const o = {
 	describe: 'describe',
 	it: 'it',
@@ -16,6 +18,7 @@ let assert = null;
 const C = CryptoJS;
 
 export class UnitTestHex {
+	static C = C;
 	static init(chaiM, mochaM, describeM, itM, beforeM, afterM, beforeEachM, afterEachM) {
 		if (chaiM) {
 			chai = chaiM;

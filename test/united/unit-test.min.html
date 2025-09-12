@@ -12,7 +12,7 @@
 		<script type="module">
 			// esmoduleで書く
 			import * as chai from '/proxy?u=cdn.jsdelivr.net/npm/chai@6.0.1/index.min.js'; // esmoduleでchaiをimport
-			import { UnitTest } from './unit-test.js'; // esmoduleでchaiをimport
+			import { UnitTest } from './unit-test.min.js'; // esmoduleでchaiをimport
 			mocha.setup('bdd');
 			mocha.checkLeaks();
 			await UnitTest.init(chai, mocha, describe, it, before, after, beforeEach, afterEach); // UnitTestクラスの初期化
