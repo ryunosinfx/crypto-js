@@ -19,7 +19,8 @@
 	"scripts": {
 		"build": "grunt build",
 		"test": "grunt default",
-		"terser": "terser ./src/united/crypto.min.js --compress ecma=2016,computed_props=false -o ./src/united/crypto.m.js"
+		"terser": "terser ./src/united/crypto.min.js --compress ecma=2016,computed_props=false -o ./src/united/crypto.m.js",
+		"terser-sha1": "terser ./src/separated/sha1.min.js --compress ecma=2016,computed_props=false -o ./src/separated/sha1.m.js"
 	},
 	"main": "index.js",
 	"browser": {
